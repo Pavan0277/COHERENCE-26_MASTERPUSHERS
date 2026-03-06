@@ -66,7 +66,7 @@ export async function updateCallStatus(callId, status, metadata = {}) {
 }
 
 /**
- * Create initial transcript record when call is initiated
+ * Create initial transcript record when call is initiated (VAPI)
  */
 export async function createInitialTranscript(callId, vapiId, phoneNumber, userId = null) {
     return CallTranscript.create({
@@ -75,6 +75,29 @@ export async function createInitialTranscript(callId, vapiId, phoneNumber, userI
         phoneNumber,
         status: "initiated",
         transcript: [],
+        metadata: { userId },
+    });
+}
+
+/**
+ * Create initial transcript record for Vonage call
+ * @param {string} [greeting] - Optional AI greeting text to store as first transcript entry
+ */
+export async function createInitialTranscriptVonage(callId, vonageUuid, phoneNumber, userId = null, greeting = null) {
+    const transcript = [];
+    if (greeting) {
+        transcript.push({
+            role: "ai",
+            content: greeting,
+            timestamp: new Date(),
+        });
+    }
+    return CallTranscript.create({
+        callId,
+        vonageUuid: vonageUuid ? String(vonageUuid) : undefined,
+        phoneNumber,
+        status: "initiated",
+        transcript,
         metadata: { userId },
     });
 }

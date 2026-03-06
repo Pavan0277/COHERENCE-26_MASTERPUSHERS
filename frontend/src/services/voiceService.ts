@@ -27,8 +27,11 @@ API.interceptors.response.use(
   }
 );
 
-export const initiateCall = (phoneNumber: string) =>
-  API.post("/call", { phoneNumber });
+export const initiateCallVapi = (phoneNumber: string) =>
+  API.post("/call/vapi", { phoneNumber });
+
+export const initiateCallVonage = (phoneNumber: string) =>
+  API.post("/call/vonage", { phoneNumber });
 
 export const listTranscripts = (page = 1, limit = 20) =>
   API.get(`/transcripts?page=${page}&limit=${limit}`);

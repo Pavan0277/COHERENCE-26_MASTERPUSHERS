@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import {
-  initiateCall,
+  initiateCallVapi,
+  initiateCallVonage,
   listTranscripts,
   getTranscript,
 } from "../services/voiceService";
@@ -18,7 +19,7 @@ type CallTranscript = {
   status: string;
   transcript: TranscriptEntry[];
   createdAt: string;
-  metadata?: { duration?: number; endedAt?: string };
+  metadata?: { duration?: number; endedAt?: string; recordingUrl?: string };
 };
 
 export default function VoiceAutomation() {
@@ -30,6 +31,7 @@ export default function VoiceAutomation() {
   const [selectedTranscript, setSelectedTranscript] =
     useState<CallTranscript | null>(null);
   const [loadingTranscripts, setLoadingTranscripts] = useState(true);
+  const [provider, setProvider] = useState<"vapi" | "vonage">("vapi");
   const lastFetchRef = useRef<number>(0);
   const minFetchIntervalMs = 30_000; // Don't refetch more than once per 30 seconds
 
@@ -64,7 +66,10 @@ export default function VoiceAutomation() {
     }
     try {
       setLoading(true);
-      const res = await initiateCall(phoneNumber.trim());
+      const res =
+        provider === "vapi"
+          ? await initiateCallVapi(phoneNumber.trim())
+          : await initiateCallVonage(phoneNumber.trim());
       setSuccess(
         `Call initiated to ${phoneNumber}. Call ID: ${res.data?.data?.callId ?? "N/A"}`
       );
@@ -105,9 +110,8 @@ export default function VoiceAutomation() {
           AI Voice Automation
         </h1>
         <p className="mt-2 text-gray-500">
-          Initiate AI-controlled outbound calls with Vonage Voice API. The system
-          uses speech recognition, workflow logic, and text-to-speech for
-          real-time conversation.
+          Initiate outbound calls with VAPI (AI voice) or Vonage (Nexmo). Choose
+          provider below. Transcripts are available after each call.
         </p>
       </div>
 
@@ -119,6 +123,27 @@ export default function VoiceAutomation() {
         <p className="mt-1 text-sm text-gray-500">
           Enter number with country code. India: 91 + 10 digits (e.g. 918208061528 or 8208061528)
         </p>
+        <div className="mt-4 flex flex-wrap items-center gap-4">
+          <h3 className="text-sm font-medium text-gray-700">Provider:</h3>
+          <label className="flex gap-2">
+            <input
+              type="radio"
+              name="provider"
+              checked={provider === "vapi"}
+              onChange={() => setProvider("vapi")}
+            />
+            <span>VAPI (AI voice)</span>
+          </label>
+          <label className="flex gap-2">
+            <input
+              type="radio"
+              name="provider"
+              checked={provider === "vonage"}
+              onChange={() => setProvider("vonage")}
+            />
+            <span>Vonage (Nexmo)</span>
+          </label>
+        </div>
         <form onSubmit={handleInitiateCall} className="mt-4 flex gap-3">
           <input
             type="tel"
@@ -222,6 +247,16 @@ export default function VoiceAutomation() {
               {new Date(selectedTranscript.createdAt).toLocaleString()} •{" "}
               {selectedTranscript.status}
             </p>
+            {selectedTranscript.metadata?.recordingUrl && (
+              <a
+                href={selectedTranscript.metadata.recordingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-block text-sm text-indigo-600 hover:underline"
+              >
+                Download recording
+              </a>
+            )}
             <div className="mt-4 space-y-3">
               {selectedTranscript.transcript?.map((entry) => (
                 <div

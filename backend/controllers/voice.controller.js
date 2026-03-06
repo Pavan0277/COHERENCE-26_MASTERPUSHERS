@@ -1,22 +1,25 @@
 /**
  * Voice Controller
- * Handles voice automation API and VAPI webhooks.
+ * Handles voice automation API. Supports both VAPI and Vonage (Nexmo).
  */
 
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { createOutboundCall } from "../services/vapi/vapiService.js";
+import { createOutboundCall as createVapiCall } from "../services/vapi/vapiService.js";
+import { createOutboundCall as createVonageCall } from "../services/vonage/vonageService.js";
 import {
     createInitialTranscript,
+    createInitialTranscriptVonage,
+    getTranscriptByUuid,
     getTranscriptByVapiId,
     addTranscriptEntry,
 } from "../services/transcript/transcriptService.js";
 import { CallTranscript } from "../models/CallTranscript.model.js";
 
 /**
- * POST /api/v1/voice/call
- * Initiate outbound call (requires auth)
+ * POST /api/v1/voice/call/vapi
+ * Initiate outbound call via VAPI (requires auth)
  */
-export const initiateCall = asyncHandler(async (req, res) => {
+export const initiateCallVapi = asyncHandler(async (req, res) => {
     const { phoneNumber } = req.body;
     const userId = req.user?._id;
 
@@ -24,8 +27,7 @@ export const initiateCall = asyncHandler(async (req, res) => {
         return res.status(400).json({ message: "phoneNumber is required" });
     }
 
-    const { callId, vapiId } = await createOutboundCall(phoneNumber, null, null, userId);
-
+    const { callId, vapiId } = await createVapiCall(phoneNumber, null, null, userId);
     await createInitialTranscript(callId, vapiId, phoneNumber, userId);
 
     res.status(201).json({
@@ -35,8 +37,87 @@ export const initiateCall = asyncHandler(async (req, res) => {
 });
 
 /**
+ * POST /api/v1/voice/call/vonage
+ * Initiate outbound call via Vonage (requires auth)
+ */
+export const initiateCallVonage = asyncHandler(async (req, res) => {
+    const { phoneNumber } = req.body;
+    const userId = req.user?._id;
+
+    if (!phoneNumber) {
+        return res.status(400).json({ message: "phoneNumber is required" });
+    }
+
+    const { callId, uuid, greeting } = await createVonageCall(phoneNumber);
+    await createInitialTranscriptVonage(callId, uuid, phoneNumber, userId, greeting);
+
+    res.status(201).json({
+        success: true,
+        data: { callId, vonageUuid: uuid, phoneNumber },
+    });
+});
+
+/**
+ * POST /api/v1/voice/webhook/vonage/events
+ * Vonage sends call events and recording webhooks here
+ */
+export const handleVonageWebhook = asyncHandler(async (req, res) => {
+    const body = req.body || {};
+    const uuid = body.uuid;
+    const status = body.status;
+    const recordingUrl = body.recording_url;
+
+    if (!uuid) {
+        return res.status(200).send();
+    }
+
+    const statusMap = {
+        started: "initiated",
+        ringing: "ringing",
+        answered: "answered",
+        completed: "ended",
+        hangup: "ended",
+        timeout: "failed",
+        failed: "failed",
+    };
+    const newStatus = statusMap[status] || status;
+
+    // Update call status
+    await CallTranscript.findOneAndUpdate(
+        { vonageUuid: uuid.toString() },
+        { $set: { status: newStatus } },
+        { upsert: false }
+    ).catch(() => {});
+
+    // Recording completed - store recording URL and add transcript entry
+    if (recordingUrl) {
+        const doc = await getTranscriptByUuid(uuid.toString());
+        if (doc) {
+            await CallTranscript.findOneAndUpdate(
+                { vonageUuid: uuid.toString() },
+                {
+                    $set: {
+                        status: "ended",
+                        "metadata.recordingUrl": recordingUrl,
+                        "metadata.endedAt": new Date(),
+                    },
+                },
+                { upsert: false }
+            );
+            await addTranscriptEntry(
+                doc.callId,
+                "caller",
+                `[Recording available - full conversation captured. URL: ${recordingUrl}]`
+            );
+        }
+    }
+
+    return res.status(200).send();
+});
+
+/**
  * POST /api/v1/voice/webhook/vapi
- * VAPI sends all events to this single webhook (Server URL)
+ * VAPI sends all events to this single webhook (Server URL) - kept for backwards compat
  */
 export const handleVapiWebhook = asyncHandler(async (req, res) => {
     const body = req.body || {};
