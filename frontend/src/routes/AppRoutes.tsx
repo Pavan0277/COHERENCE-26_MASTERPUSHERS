@@ -6,6 +6,7 @@ import Dashboard from "../pages/Dashboard";
 import AdminUsers from "../pages/admin/AdminUsers";
 import AdminOrders from "../pages/admin/AdminOrders";
 import AdminAnalytics from "../pages/admin/AdminAnalytics";
+import Profile from "../pages/Profile";
 import LandingPage from "../pages/Landing/LandingPage";
 import MainLayout from "../layouts/MainLayout";
 import PrivateRoute from "../components/PrivateRoute";
@@ -26,7 +27,7 @@ export default function AppRoutes() {
           <Route path="/admin/users" element={<AdminUsers />} />
           <Route path="/admin/orders" element={<AdminOrders />} />
           <Route path="/admin/analytics" element={<AdminAnalytics />} />
-          <Route path="/profile" element={<div className="text-xl text-gray-700">Profile Page</div>} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<div className="text-xl text-gray-700">Settings Page</div>} />
         </Route>
       </Route>
