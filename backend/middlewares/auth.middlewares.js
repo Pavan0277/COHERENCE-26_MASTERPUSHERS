@@ -4,11 +4,12 @@ import { User } from "../models/user.model.js";
 
 export const verifyJWT = asyncHandler(async (req, res, next) => {
     try {
-        const token =
+        let token =
             req.cookies?.accessToken ||
             req.header("Authorization")?.replace("Bearer ", "");
 
-        if (!token) {
+        token = typeof token === "string" ? token.trim() : "";
+        if (!token || token === "null" || token === "undefined") {
             return res
                 .status(401)
                 .json({ message: "Access denied. No token provided." });

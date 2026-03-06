@@ -3,6 +3,7 @@ import { logoutUser } from "../services/authService";
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard" },
+  { label: "Voice Automation", path: "/voice" },
   { label: "Profile", path: "/profile" },
   { label: "Settings", path: "/settings" },
 ];
