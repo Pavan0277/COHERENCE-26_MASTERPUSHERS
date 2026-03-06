@@ -32,8 +32,19 @@ const ask = (q) => new Promise((resolve) => rl.question(q, resolve));
     const apiHash =        await ask("API Hash : ");
     const phone   =        await ask("Phone (international format, e.g. +91XXXXXXXXXX) : ");
 
+    console.log("\n[Optional] If Telegram is blocked on your network, enter a SOCKS5 proxy.");
+    console.log("[Optional] Leave blank to skip proxy.\n");
+    const proxyHost = (await ask("SOCKS5 Proxy Host (e.g. 127.0.0.1 or leave blank) : ")).trim();
+    const proxyPort = proxyHost ? (await ask("SOCKS5 Proxy Port (e.g. 1080)              : ")).trim() : "";
+
     const client = new TelegramClient(new StringSession(""), apiId, apiHash, {
         connectionRetries: 5,
+        proxy: proxyHost ? {
+            ip: proxyHost,
+            port: Number(proxyPort) || 1080,
+            socksType: 5,
+            timeout: 10,
+        } : undefined,
     });
 
     await client.start({
