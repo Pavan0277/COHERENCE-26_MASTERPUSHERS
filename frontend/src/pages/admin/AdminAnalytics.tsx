@@ -78,7 +78,7 @@ export default function AdminAnalytics() {
       {/* Stat Cards */}
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {stats.map((s) => (
-          <div key={s.label} className="rounded-xl border border-gray-100 bg-white p-5 shadow-card">
+          <div key={s.label} className="rounded-xl border border-gray-200 bg-gray-100 p-5 shadow-card">
             <div className="flex items-center justify-between">
               <div className={`rounded-lg p-2.5 ${s.color}`}>
                 <s.icon className="h-5 w-5" />
@@ -94,7 +94,7 @@ export default function AdminAnalytics() {
       {/* Charts */}
       <div className="grid gap-5 lg:grid-cols-3">
         {/* Revenue & Users */}
-        <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-card lg:col-span-2">
+        <div className="rounded-xl border border-gray-200 bg-gray-100 p-5 shadow-card lg:col-span-2">
           <h2 className="text-base font-semibold text-heading">Revenue & User Growth</h2>
           <p className="mb-4 text-xs text-body-light">Last 8 months</p>
           <ResponsiveContainer width="100%" height={300}>
@@ -120,7 +120,7 @@ export default function AdminAnalytics() {
         </div>
 
         {/* Device Breakdown */}
-        <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-card">
+        <div className="rounded-xl border border-gray-200 bg-gray-100 p-5 shadow-card">
           <div className="mb-2 flex items-center gap-2">
             <Globe className="h-4 w-4 text-brand-600" />
             <h2 className="text-base font-semibold text-heading">Device Breakdown</h2>
@@ -156,7 +156,7 @@ export default function AdminAnalytics() {
       {/* Bottom Row */}
       <div className="grid gap-5 lg:grid-cols-2">
         {/* Top Pages */}
-        <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-card">
+        <div className="rounded-xl border border-gray-200 bg-gray-100 p-5 shadow-card">
           <h2 className="text-base font-semibold text-heading">Top Pages</h2>
           <p className="mb-4 text-xs text-body-light">Most visited pages this month</p>
           <ResponsiveContainer width="100%" height={220}>
@@ -171,7 +171,7 @@ export default function AdminAnalytics() {
         </div>
 
         {/* Traffic Sources */}
-        <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-card">
+        <div className="rounded-xl border border-gray-200 bg-gray-100 p-5 shadow-card">
           <h2 className="text-base font-semibold text-heading">Traffic Sources</h2>
           <p className="mb-5 text-xs text-body-light">Where visitors are coming from</p>
           <div className="space-y-5">
@@ -181,7 +181,7 @@ export default function AdminAnalytics() {
                   <span className="text-sm font-medium text-heading">{t.source}</span>
                   <span className="text-sm font-semibold text-heading">{t.percent}%</span>
                 </div>
-                <div className="h-2 overflow-hidden rounded-full bg-gray-100">
+                <div className="h-2 overflow-hidden rounded-full bg-gray-200">
                   <div className={`h-full rounded-full ${t.color}`} style={{ width: `${t.percent}%` }} />
                 </div>
               </div>

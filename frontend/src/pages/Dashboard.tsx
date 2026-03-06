@@ -1,4 +1,15 @@
 import { useState } from "react";
+
+function getUserName(): string {
+  try {
+    const raw = localStorage.getItem("user");
+    if (!raw) return "";
+    const user = JSON.parse(raw);
+    return user?.fullName || user?.email?.split("@")[0] || "";
+  } catch {
+    return "";
+  }
+}
 import {
   Users,
   DollarSign,
@@ -124,15 +135,17 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-heading">Admin Dashboard</h1>
-          <p className="text-sm text-body-light">Welcome back! Here's what's happening today.</p>
+          <h1 className="text-2xl font-bold text-heading">
+            {getUserName() ? `Welcome back, ${getUserName()}!` : "Dashboard"}
+          </h1>
+          <p className="text-sm text-body-light">Here's what's happening today.</p>
         </div>
         <div className="flex items-center gap-3">
           {/* Channel Selector */}
           <div className="relative">
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-sm font-medium text-heading shadow-card transition hover:border-brand-300 hover:shadow-card-hover"
+              className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-100 px-3.5 py-2 text-sm font-medium text-heading shadow-card transition hover:border-brand-300 hover:shadow-card-hover"
             >
               <selectedChannel.icon className={`h-4 w-4 ${selectedChannel.color}`} />
               {selectedChannel.label}
@@ -141,7 +154,7 @@ export default function Dashboard() {
             {dropdownOpen && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)} />
-                <div className="absolute right-0 z-20 mt-1.5 w-48 rounded-xl border border-gray-100 bg-white py-1 shadow-elevated">
+                <div className="absolute right-0 z-20 mt-1.5 w-48 rounded-xl border border-gray-200 bg-gray-100 py-1 shadow-elevated">
                   {channels.map((ch) => (
                     <button
                       key={ch.id}
@@ -176,7 +189,7 @@ export default function Dashboard() {
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className="group rounded-xl border border-gray-100 bg-white p-5 shadow-card transition-all duration-300 hover:shadow-card-hover"
+            className="group rounded-xl border border-gray-200 bg-gray-100 p-5 shadow-card transition-all duration-300 hover:shadow-card-hover"
           >
             <div className="flex items-center justify-between">
               <div className={`rounded-lg p-2.5 ${stat.color}`}>
@@ -200,7 +213,7 @@ export default function Dashboard() {
       {/* Charts Row */}
       <div className="grid gap-5 lg:grid-cols-3">
         {/* Revenue Chart */}
-        <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-card lg:col-span-2">
+        <div className="rounded-xl border border-gray-200 bg-gray-100 p-5 shadow-card lg:col-span-2">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h2 className="text-base font-semibold text-heading">Revenue Overview</h2>
@@ -242,7 +255,7 @@ export default function Dashboard() {
         </div>
 
         {/* Traffic Chart */}
-        <div className="rounded-xl border border-gray-100 bg-white p-5 shadow-card">
+        <div className="rounded-xl border border-gray-200 bg-gray-100 p-5 shadow-card">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h2 className="text-base font-semibold text-heading">Weekly Traffic</h2>
@@ -275,7 +288,7 @@ export default function Dashboard() {
       {/* Bottom Row */}
       <div className="grid gap-5 lg:grid-cols-3">
         {/* Recent Orders */}
-        <div className="rounded-xl border border-gray-100 bg-white shadow-card lg:col-span-2">
+        <div className="rounded-xl border border-gray-200 bg-gray-100 shadow-card lg:col-span-2">
           <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
             <div className="flex items-center gap-2">
               <ShoppingCart className="h-4 w-4 text-brand-600" />
@@ -316,7 +329,7 @@ export default function Dashboard() {
         </div>
 
         {/* New Users */}
-        <div className="rounded-xl border border-gray-100 bg-white shadow-card">
+        <div className="rounded-xl border border-gray-200 bg-gray-100 shadow-card">
           <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
             <div className="flex items-center gap-2">
               <UserPlus className="h-4 w-4 text-brand-600" />

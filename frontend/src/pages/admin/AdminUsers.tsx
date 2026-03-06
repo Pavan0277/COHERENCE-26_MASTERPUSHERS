@@ -59,17 +59,17 @@ export default function AdminUsers() {
             placeholder="Search users..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-heading placeholder:text-body-light focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
+            className="w-full rounded-lg border border-gray-200 bg-gray-100 py-2.5 pl-10 pr-4 text-sm text-heading placeholder:text-body-light focus:border-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-100"
           />
         </div>
-        <button className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-body transition hover:border-brand-300 hover:text-heading">
+        <button className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-100 px-4 py-2.5 text-sm font-medium text-body transition hover:border-brand-300 hover:text-heading">
           <Filter className="h-4 w-4" />
           Filter
         </button>
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-card">
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-gray-100 shadow-card">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
