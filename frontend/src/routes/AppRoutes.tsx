@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
+import ForgotPassword from "../pages/ForgotPassword";
 import Dashboard from "../pages/Dashboard";
 import MainLayout from "../layouts/MainLayout";
 import PrivateRoute from "../components/PrivateRoute";
@@ -10,6 +11,7 @@ export default function AppRoutes() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
 
       <Route element={<PrivateRoute />}>
         <Route element={<MainLayout />}>
