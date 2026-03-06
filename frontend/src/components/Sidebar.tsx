@@ -1,10 +1,22 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { logoutUser } from "../services/authService";
+import {
+  LayoutDashboard,
+  User,
+  Settings,
+  LogOut,
+  Users,
+  ShoppingCart,
+  BarChart3,
+} from "lucide-react";
 
 const navItems = [
-  { label: "Dashboard", path: "/dashboard" },
-  { label: "Profile", path: "/profile" },
-  { label: "Settings", path: "/settings" },
+  { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+  { label: "Users", path: "/admin/users", icon: Users },
+  { label: "Orders", path: "/admin/orders", icon: ShoppingCart },
+  { label: "Analytics", path: "/admin/analytics", icon: BarChart3 },
+  { label: "Profile", path: "/profile", icon: User },
+  { label: "Settings", path: "/settings", icon: Settings },
 ];
 
 export default function Sidebar() {
@@ -21,34 +33,48 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="flex h-screen w-64 flex-col bg-gray-900 text-white">
-      <div className="flex h-16 items-center justify-center border-b border-gray-700 text-xl font-bold tracking-wide">
-        MyApp
+    <aside className="flex h-screen w-64 flex-col border-r border-gray-100 bg-white">
+      {/* Logo */}
+      <div className="flex h-16 items-center gap-2 border-b border-gray-100 px-5">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-brand-700">
+          <span className="text-sm font-bold text-white">V</span>
+        </div>
+        <span className="text-lg font-bold tracking-tight text-heading">Velo</span>
+        <span className="ml-auto rounded-md bg-brand-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-brand-600">
+          Admin
+        </span>
       </div>
 
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      {/* Navigation */}
+      <nav className="flex-1 space-y-0.5 px-3 py-4">
+        <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-ultra-wide text-body-light">
+          Menu
+        </p>
         {navItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}
             className={({ isActive }) =>
-              `block rounded-lg px-4 py-2.5 text-sm font-medium transition ${
+              `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
                 isActive
-                  ? "bg-indigo-600 text-white"
-                  : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                  ? "bg-brand-50 text-brand-700"
+                  : "text-body hover:bg-surface-subtle hover:text-heading"
               }`
             }
           >
+            <item.icon className="h-[18px] w-[18px]" />
             {item.label}
           </NavLink>
         ))}
       </nav>
 
-      <div className="border-t border-gray-700 p-3">
+      {/* Logout */}
+      <div className="border-t border-gray-100 p-3">
         <button
           onClick={handleLogout}
-          className="w-full rounded-lg px-4 py-2.5 text-left text-sm font-medium text-gray-300 transition hover:bg-gray-800 hover:text-white"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-body transition-all duration-200 hover:bg-red-50 hover:text-red-600"
         >
+          <LogOut className="h-[18px] w-[18px]" />
           Logout
         </button>
       </div>
