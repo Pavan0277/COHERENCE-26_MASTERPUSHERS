@@ -9,6 +9,7 @@ const COLUMN_PATTERNS = {
     company: ["company", "company name", "companyname", "organization", "org"],
     title: ["title", "job title", "jobtitle", "designation", "role", "position"],
     phone: ["phone", "phone number", "phonenumber", "mobile", "mobile number", "contact number"],
+    telegram_id: ["telegram_id", "telegram id", "telegramid", "telegram", "tg_id", "tgid"],
 };
 
 function detectColumns(headers) {
@@ -65,15 +66,31 @@ export const uploadLeads = asyncHandler(async (req, res) => {
 
     const leads = rows.map((row) => ({
         userId: req.user._id,
-        workflowId,
+        workflowId: workflow._id,   // ObjectId — avoids bulkWrite casting ambiguity
         name: detectedColumns.name ? row[detectedColumns.name] : "",
         email: detectedColumns.email ? row[detectedColumns.email] : "",
         company: detectedColumns.company ? row[detectedColumns.company] : "",
         title: detectedColumns.title ? row[detectedColumns.title] : "",
         phone: detectedColumns.phone ? row[detectedColumns.phone] : "",
+        telegram_id: detectedColumns.telegram_id ? String(row[detectedColumns.telegram_id]) : "",
     }));
 
-    const savedLeads = await Lead.insertMany(leads);
+    // Upsert by (userId + workflowId + email) so re-uploading the same file
+    // never causes a duplicate-key error.
+    const ops = leads.map((lead) => ({
+        updateOne: {
+            filter: { userId: lead.userId, workflowId: lead.workflowId, email: lead.email || null },
+            update: { $set: lead },
+            upsert: true,
+        },
+    }));
+
+    await Lead.bulkWrite(ops, { ordered: false });
+
+    const savedLeads = await Lead.find({
+        userId: leads[0].userId,
+        workflowId: leads[0].workflowId,
+    });
 
     return res.status(201).json({
         detectedColumns,

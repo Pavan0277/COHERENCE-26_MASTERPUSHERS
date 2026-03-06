@@ -10,16 +10,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@xyflow/react": "^12.10.1",
     "@studio-freight/lenis": "^1.0.42",
+    "@xyflow/react": "^12.10.1",
     "axios": "^1.13.6",
     "framer-motion": "^12.35.0",
     "lucide-react": "^0.577.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.13.1",
+    "recharts": "^3.7.0",
     "xlsx": "^0.18.5",
-    "recharts": "^3.7.0"
+    "zustand": "^5.0.11"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

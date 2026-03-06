@@ -35,6 +35,10 @@ const leadSchema = new mongoose.Schema(
             type: String,
             trim: true,
         },
+        telegram_id: {
+            type: String,
+            trim: true,
+        },
     },
     {
         timestamps: true,

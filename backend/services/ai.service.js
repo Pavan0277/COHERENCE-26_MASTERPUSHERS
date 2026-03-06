@@ -1,6 +1,12 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import OpenAI from "openai";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// Lazily instantiated so dotenv has loaded before this runs
+function getClient() {
+  return new OpenAI({
+    apiKey: process.env.SARVAM_API_KEY,
+    baseURL: "https://api.sarvam.ai/v1",
+  });
+}
 
 const WORKFLOW_SYSTEM_PROMPT = `You are a workflow builder assistant. When given a description of a workflow, respond ONLY with a valid JSON object — no explanation, no markdown, no code fences.
 
@@ -30,16 +36,21 @@ Always connect nodes using edges from first to last in sequence.
 Return ONLY the raw JSON object.`;
 
 export async function generateWorkflow(prompt) {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const client = getClient();
 
-    const result = await model.generateContent(
-        `${WORKFLOW_SYSTEM_PROMPT}\n\nUser request: ${prompt}`
-    );
+    const completion = await client.chat.completions.create({
+        model: "sarvam-m",
+        messages: [
+            { role: "system", content: WORKFLOW_SYSTEM_PROMPT },
+            { role: "user",   content: prompt },
+        ],
+        temperature: 0.2,
+    });
 
-    const raw = result.response.text().trim();
+    const raw = completion.choices[0].message.content.trim();
 
-    // Strip markdown code fences if the model wraps the response anyway
-    const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/,  "").trim();
+    // Strip markdown code fences if the model wraps the response
+    const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
 
     let workflow;
     try {
@@ -73,9 +84,13 @@ export async function generateOutreachMessage(lead, instructions) {
 
         Return only the message text, no subject line or extra formatting.`;
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const client = getClient();
 
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    return response.text();
+    const completion = await client.chat.completions.create({
+        model: "sarvam-m",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7,
+    });
+
+    return completion.choices[0].message.content.trim();
 }

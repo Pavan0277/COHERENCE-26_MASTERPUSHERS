@@ -19,10 +19,12 @@ import {
   Users,
   ShoppingCart,
   BarChart3,
+  GitBranch,
 } from "lucide-react";
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+  { label: "Workflows", path: "/workflows/new", icon: GitBranch },
   { label: "Users", path: "/admin/users", icon: Users },
   { label: "Orders", path: "/admin/orders", icon: ShoppingCart },
   { label: "Analytics", path: "/admin/analytics", icon: BarChart3 },

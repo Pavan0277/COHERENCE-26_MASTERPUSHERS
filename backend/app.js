@@ -24,6 +24,8 @@ import { aiRouter } from "./routers/ai.routes.js";
 import { messagingRouter } from "./routers/messaging.routes.js";
 import { delayRouter } from "./routers/delay.routes.js";
 import { engineRouter } from "./routers/engine.routes.js";
+import { settingsRouter } from "./routers/settings.routes.js";
+import { analyticsRouter } from "./routers/analytics.routes.js";
 
 app.use("/api/v1/auth", userRouter);
 app.use("/api/workflows", workflowRouter);
@@ -32,6 +34,8 @@ app.use("/api/ai", aiRouter);
 app.use("/api/messaging", messagingRouter);
 app.use("/api/delay", delayRouter);
 app.use("/api/engine", engineRouter);
+app.use("/api/settings", settingsRouter);
+app.use("/api/analytics", analyticsRouter);
 
 // Global error handler
 app.use((err, req, res, next) => {

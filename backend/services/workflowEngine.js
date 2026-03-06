@@ -1,6 +1,8 @@
 import { Workflow } from "../models/workflow.model.js";
 import { Lead } from "../models/lead.model.js";
 import { LeadExecution } from "../models/leadExecution.model.js";
+import { UserSettings } from "../models/userSettings.model.js";
+import { MessageLog } from "../models/messageLog.model.js";
 import { applyFilter } from "../utils/filterEngine.js";
 import { generateOutreachMessage } from "./ai.service.js";
 import { sendMessage } from "./messaging.service.js";
@@ -97,7 +99,26 @@ async function executeNode(node, lead, context) {
             if (!message) {
                 throw new Error("No message to send. Add an ai_message node before send.");
             }
-            await sendMessage(platform, lead, message);
+
+            let sendError = null;
+            try {
+                await sendMessage(platform, lead, message, context.userCredentials);
+            } catch (err) {
+                sendError = err;
+            }
+
+            // Log every attempt — never let logging failure block execution
+            await MessageLog.create({
+                userId:     context.userId,
+                workflowId: context.workflowId,
+                leadId:     lead._id,
+                leadName:   lead.name || "",
+                platform,
+                status:     sendError ? "failed" : "sent",
+                error:      sendError ? sendError.message : null,
+            }).catch(() => {});
+
+            if (sendError) throw sendError;
             return { continue: true };
         }
 
@@ -132,11 +153,22 @@ export async function executeWorkflow(workflowId) {
     const workflow = await Workflow.findById(workflowId);
     if (!workflow) throw new Error("Workflow not found");
 
+    // Fetch per-user messaging credentials (falls back to env if not set)
+    const userSettings = await UserSettings.findOne({ userId: workflow.userId });
+
     const orderedNodes = getOrderedNodes(workflow.nodes, workflow.edges);
     if (!orderedNodes.length) throw new Error("Workflow has no nodes");
 
     const leads = await Lead.find({ workflowId: workflow._id });
-    if (!leads.length) throw new Error("No leads found for this workflow");
+    if (!leads.length) {
+        return {
+            workflowId: workflow._id,
+            workflowName: workflow.name,
+            totalLeads: 0,
+            results: [],
+            message: "No leads found for this workflow. Upload a leads file first.",
+        };
+    }
 
     const results = [];
 
@@ -170,6 +202,11 @@ export async function executeWorkflow(workflowId) {
             userId: workflow.userId.toString(),
             generatedMessage: null,
             nextNodeId: null,
+            userCredentials: userSettings ? {
+                email:    userSettings.email,
+                slack:    userSettings.slack,
+                telegram: userSettings.telegram,
+            } : {},
         };
 
         let leadStatus = "completed";
