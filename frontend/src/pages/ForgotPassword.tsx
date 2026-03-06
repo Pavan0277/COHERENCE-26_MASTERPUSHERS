@@ -59,29 +59,29 @@ export default function ForgotPassword() {
 
   return (
     <AuthLayout illustration={<RecoverIllustration />} pageLabel="Recover">
-      <div className="w-full max-w-lg">
-        <h1 className="text-3xl font-bold text-gray-900 leading-tight mb-2">
+      <div className="w-full max-w-xl">
+        <h1 className="text-4xl font-bold text-gray-900 leading-tight mb-3">
           Lost your password?<br />
           Enter your details to recover.
         </h1>
-        <p className="text-xs text-gray-400 mb-8">Enter your details to proceed further</p>
+        <p className="text-sm text-gray-400 mb-9">Enter your details to proceed further</p>
 
         {error && (
           <div
             role="alert"
-            className="mb-5 text-xs text-red-600 bg-red-50 border border-red-100 px-3 py-2.5 rounded-lg"
+            className="mb-5 text-sm text-red-600 bg-red-50 border border-red-100 px-3 py-3 rounded-lg"
           >
             {error}
           </div>
         )}
 
         {success && (
-          <output className="block mb-5 text-xs text-green-700 bg-green-50 border border-green-100 px-3 py-2.5 rounded-lg">
+          <output className="block mb-5 text-sm text-green-700 bg-green-50 border border-green-100 px-3 py-3 rounded-lg">
             {success}
           </output>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-7">
           <InputField
             label="Email"
             name="email"
@@ -95,13 +95,13 @@ export default function ForgotPassword() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 mt-2 bg-[#1e3a5f] text-white text-sm font-semibold rounded-full hover:bg-[#16304f] transition-colors disabled:opacity-60"
+            className="w-full py-3 mt-2 bg-[#1e3a5f] text-white text-base font-semibold rounded-full hover:bg-[#16304f] transition-colors disabled:opacity-60"
           >
             {loading ? "Sending…" : "Recover"}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-gray-500">
+        <p className="mt-6 text-center text-sm text-gray-500">
           Remembered your password?{" "}
           <Link to="/login" className="text-[#4361EE] hover:underline font-medium">
             Sign In

@@ -17,19 +17,9 @@ export default function AuthLayout({ children, illustration }: Readonly<AuthLayo
           {children}
         </div>
 
-        {/* Right: illustration panel */}
-        <div
-          className="hidden lg:flex relative w-[45%] flex-shrink-0 overflow-hidden items-center justify-center"
-          style={{ background: "linear-gradient(150deg, #4361EE 0%, #3651d4 100%)" }}
-        >
-          {/* Decorative concentric rings */}
-          <div className="absolute -top-24 -right-24 w-[480px] h-[480px] rounded-full border border-white/10" />
-          <div className="absolute -top-14 -right-14 w-[360px] h-[360px] rounded-full border border-white/10" />
-          <div className="absolute -bottom-24 -left-24 w-[360px] h-[360px] rounded-full border border-white/10" />
-          <div className="absolute -bottom-10 -left-10 w-[240px] h-[240px] rounded-full border border-white/10" />
-          <div className="relative z-10">
-            {illustration}
-          </div>
+        {/* Right: full-bleed image panel — no background, image fills the area */}
+        <div className="hidden lg:block w-[45%] flex-shrink-0 overflow-hidden">
+          {illustration}
         </div>
       </div>
     </div>

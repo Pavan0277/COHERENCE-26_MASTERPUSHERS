@@ -6,8 +6,8 @@ const EyeIcon = () => (
     fill="none"
     stroke="currentColor"
     strokeWidth="1.8"
-    width="16"
-    height="16"
+    width="18"
+    height="18"
     strokeLinecap="round"
     strokeLinejoin="round"
   >
@@ -22,8 +22,8 @@ const EyeOffIcon = () => (
     fill="none"
     stroke="currentColor"
     strokeWidth="1.8"
-    width="16"
-    height="16"
+    width="18"
+    height="18"
     strokeLinecap="round"
     strokeLinejoin="round"
   >
@@ -54,7 +54,7 @@ export default function InputField({
 
   return (
     <div className="w-full">
-      <label className="block text-[11px] text-gray-400 mb-1.5 tracking-wide">
+      <label className="block text-xs text-gray-400 mb-2 tracking-wide">
         {label}
       </label>
       <div className="relative">
@@ -62,12 +62,12 @@ export default function InputField({
           {...props}
           type={inputType}
           className={[
-            "w-full border-0 border-b border-gray-200 pb-2.5 text-sm text-gray-800 bg-transparent",
-            "focus:outline-none focus:border-gray-500 placeholder:text-gray-400 transition-colors pr-8",
+            "w-full border-0 border-b border-gray-200 pb-3 text-base text-gray-800 bg-transparent",
+            "focus:outline-none focus:border-gray-500 placeholder:text-gray-400 transition-colors pr-9",
             className ?? "",
           ].join(" ")}
         />
-        <div className="absolute right-0 bottom-2.5 flex items-center text-gray-300">
+        <div className="absolute right-0 bottom-3 flex items-center text-gray-300">
           {isPassword ? (
             <button
               type="button"

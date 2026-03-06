@@ -40,14 +40,14 @@ const SOCIAL_PROVIDERS = [
 export default function SocialButtons() {
   return (
     <div className="text-center">
-      <p className="text-[11px] text-gray-400 mb-3">Or sign in with</p>
-      <div className="flex justify-center gap-3">
+      <p className="text-xs text-gray-400 mb-4">Or sign in with</p>
+      <div className="flex justify-center gap-4">
         {SOCIAL_PROVIDERS.map(({ icon, label }) => (
           <button
             key={label}
             type="button"
             aria-label={`Sign in with ${label}`}
-            className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center hover:border-gray-300 hover:shadow-sm transition-all"
+            className="w-11 h-11 rounded-full border border-gray-200 flex items-center justify-center hover:border-gray-300 hover:shadow-sm transition-all"
           >
             {icon}
           </button>

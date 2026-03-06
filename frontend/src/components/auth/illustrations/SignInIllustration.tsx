@@ -1,11 +1,13 @@
-/** Sign In page illustration - image from /public */
+/** Sign In page illustration - video from /public */
 export default function SignInIllustration() {
   return (
-    <img
-      src="/signinsvgimg.png"
-      alt="Sign in illustration"
-      className="w-full h-full object-contain max-w-[340px] max-h-[420px] select-none"
-      draggable={false}
+    <video
+      src="/signinsvgimg.mp4"
+      className="w-full h-full object-cover select-none"
+      autoPlay
+      loop
+      muted
+      playsInline
     />
   );
 }
