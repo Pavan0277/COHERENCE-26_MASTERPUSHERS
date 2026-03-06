@@ -44,6 +44,7 @@ export default function Login() {
       const res = await loginUser(form);
       if (rememberMe) localStorage.setItem("rememberMe", "true");
       localStorage.setItem("accessToken", res.data.accessToken);
+      if (res.data.user) localStorage.setItem("user", JSON.stringify(res.data.user));
       navigate("/dashboard");
     } catch (err: any) {
       setError(err.response?.data?.message || "Login failed");

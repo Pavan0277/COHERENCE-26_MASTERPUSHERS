@@ -81,6 +81,7 @@ export default function Register() {
         password: form.password,
       });
       localStorage.setItem("accessToken", res.data.accessToken);
+      if (res.data.user) localStorage.setItem("user", JSON.stringify(res.data.user));
       navigate("/dashboard");
     } catch (err: any) {
       setError(err.response?.data?.message || "Registration failed");
