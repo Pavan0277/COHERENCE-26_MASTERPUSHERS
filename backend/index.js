@@ -8,7 +8,10 @@ dotenv.config({
 
 
 connectDB()
-    .then(() => {
+    .then(async () => {
+        // Start the BullMQ workflow worker
+        await import("./workers/workflow.worker.js");
+
         app.listen(process.env.PORT, () => {
             console.log(` ⚙️ Server is running on port http://localhost:${process.env.PORT}`);
         });
