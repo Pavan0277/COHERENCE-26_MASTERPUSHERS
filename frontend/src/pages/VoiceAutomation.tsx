@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   initiateCall,
   listTranscripts,
@@ -30,8 +30,13 @@ export default function VoiceAutomation() {
   const [selectedTranscript, setSelectedTranscript] =
     useState<CallTranscript | null>(null);
   const [loadingTranscripts, setLoadingTranscripts] = useState(true);
+  const lastFetchRef = useRef<number>(0);
+  const minFetchIntervalMs = 30_000; // Don't refetch more than once per 30 seconds
 
-  const fetchTranscripts = async () => {
+  const fetchTranscripts = async (force = false) => {
+    const now = Date.now();
+    if (!force && now - lastFetchRef.current < minFetchIntervalMs) return;
+    lastFetchRef.current = now;
     try {
       setLoadingTranscripts(true);
       const res = await listTranscripts(1, 20);
@@ -44,8 +49,8 @@ export default function VoiceAutomation() {
   };
 
   useEffect(() => {
-    fetchTranscripts();
-    const interval = setInterval(fetchTranscripts, 10000);
+    fetchTranscripts(true); // Initial load
+    const interval = setInterval(() => fetchTranscripts(false), 60_000); // Poll every 60 seconds
     return () => clearInterval(interval);
   }, []);
 
@@ -64,7 +69,7 @@ export default function VoiceAutomation() {
         `Call initiated to ${phoneNumber}. Call ID: ${res.data?.data?.callId ?? "N/A"}`
       );
       setPhoneNumber("");
-      fetchTranscripts();
+      fetchTranscripts(true); // Force refresh after new call
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } })?.response?.data
