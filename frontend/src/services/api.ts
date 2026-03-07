@@ -72,4 +72,7 @@ export const getCallTranscript = (callId: string) =>
 export const syncCallTranscript = (vapiId: string) =>
   API.post(`/calls/sync/${vapiId}`);
 
+export const followUpCall = (callId: string, assistantId?: string, phoneNumberId?: string) =>
+  API.post("/calls/follow-up", { callId, assistantId, phoneNumberId });
+
 export default API;

@@ -6,8 +6,10 @@ import {
     addTranscriptEntryByVapiId,
     setFullTranscriptByVapiId,
     syncCallFromVapi,
+    createInitialTranscript,
 } from "../services/transcriptService.js";
 import { UserSettings } from "../models/userSettings.model.js";
+import { createOutboundCall } from "../services/vapi.service.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 /**
@@ -68,6 +70,60 @@ export const getTranscript = asyncHandler(async (req, res) => {
     }
 
     res.json(transcript);
+});
+
+/**
+ * POST /api/calls/follow-up
+ * Immediately place a follow-up VAPI call to the same lead.
+ * Body: { callId, assistantId?, phoneNumberId? }
+ */
+export const followUpCall = asyncHandler(async (req, res) => {
+    const { callId, assistantId, phoneNumberId } = req.body;
+    if (!callId) {
+        return res.status(400).json({ message: "callId is required" });
+    }
+
+    // Load original call record
+    const original = await getTranscriptByCallId(callId);
+    if (!original) {
+        return res.status(404).json({ message: "Original call not found" });
+    }
+    if (original.userId?.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+    }
+
+    const phone = original.phoneNumber;
+    if (!phone) {
+        return res.status(400).json({ message: "Original call has no phone number" });
+    }
+
+    // Get user's VAPI settings
+    const settings  = await UserSettings.findOne({ userId: req.user._id }).lean().catch(() => null);
+    const vapiCreds = settings?.vapi || {};
+    const vapiApiKey    = vapiCreds.apiKey    || null;
+    const resolvedAssistant  = assistantId   || vapiCreds.assistantId   || null;
+    const resolvedPhoneNumId = phoneNumberId || vapiCreds.phoneNumberId || null;
+
+    // Place the call
+    const { callId: newCallId, vapiId } = await createOutboundCall(
+        phone,
+        resolvedAssistant,
+        resolvedPhoneNumId,
+        vapiApiKey
+    );
+
+    // Create a DB record for the follow-up call
+    const record = await createInitialTranscript(
+        newCallId,
+        vapiId,
+        phone,
+        req.user._id,
+        original.workflowId,
+        original.leadId
+    );
+
+    console.log(`[FollowUp] New call ${newCallId} placed to ${phone} (original: ${callId})`);
+    res.status(201).json({ message: "Follow-up call initiated", call: record });
 });
 
 /**

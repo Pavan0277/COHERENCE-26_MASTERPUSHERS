@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { verifyJWT } from "../middlewares/auth.middlewares.js";
-import { listTranscripts, getTranscript, vapiWebhook, syncCall } from "../controller/calls.controller.js";
+import { listTranscripts, getTranscript, vapiWebhook, syncCall, followUpCall } from "../controller/calls.controller.js";
 
 const callsRouter = Router();
 
@@ -11,5 +11,6 @@ callsRouter.post("/webhook/vapi", vapiWebhook);
 callsRouter.get("/transcripts",          verifyJWT, listTranscripts);
 callsRouter.get("/transcripts/:callId",  verifyJWT, getTranscript);
 callsRouter.post("/sync/:vapiId",         verifyJWT, syncCall);
+callsRouter.post("/follow-up",            verifyJWT, followUpCall);
 
 export { callsRouter };

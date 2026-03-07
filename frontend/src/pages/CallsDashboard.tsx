@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
-import { Phone, ChevronDown, ChevronUp, RefreshCw, User, PhoneCall } from "lucide-react";
-import { getCallTranscripts, getCallTranscript, syncCallTranscript } from "../services/api";
+import { Phone, ChevronDown, ChevronUp, RefreshCw, User, PhoneCall, PhoneForwarded } from "lucide-react";
+import { getCallTranscripts, getCallTranscript, syncCallTranscript, followUpCall } from "../services/api";
 
 interface TranscriptEntry {
   role: "caller" | "ai" | "system";
@@ -119,13 +119,86 @@ function TranscriptDrawer({ callId, onClose }: { callId: string; onClose: () => 
 
 const TERMINAL_STATUSES = new Set(["completed", "failed", "no-answer"]);
 
+// ── Follow-up confirmation modal ──────────────────────────────────────────────
+function FollowUpModal({
+  rec,
+  onClose,
+  onSuccess,
+}: {
+  rec: CallRecord;
+  onClose: () => void;
+  onSuccess: (newRec: CallRecord) => void;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState("");
+
+  const handleConfirm = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await followUpCall(rec.callId);
+      onSuccess(res.data.call);
+      onClose();
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message || "Follow-up call failed";
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="w-full max-w-sm rounded-2xl bg-white shadow-2xl p-6">
+        <div className="mb-4 flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-sky-100">
+            <PhoneForwarded className="h-5 w-5 text-sky-600" />
+          </div>
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">Follow-up Call</h3>
+            <p className="text-xs text-gray-500">Place a new VAPI call to this lead</p>
+          </div>
+        </div>
+
+        <div className="mb-4 rounded-xl bg-gray-50 px-4 py-3 text-sm">
+          <p className="font-medium text-gray-800">{rec.leadId?.name || "Lead"}</p>
+          <p className="text-gray-500 font-mono text-xs mt-0.5">{rec.phoneNumber || rec.leadId?.phone}</p>
+        </div>
+
+        {error && (
+          <p className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">{error}</p>
+        )}
+
+        <div className="flex gap-2">
+          <button
+            onClick={onClose}
+            disabled={loading}
+            className="flex-1 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleConfirm}
+            disabled={loading}
+            className="flex-1 rounded-lg bg-sky-500 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-600 disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {loading ? <RefreshCw className="h-4 w-4 animate-spin" /> : <PhoneForwarded className="h-4 w-4" />}
+            {loading ? "Calling..." : "Call Now"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function CallsDashboard() {
-  const [records, setRecords]     = useState<CallRecord[]>([]);
-  const [total, setTotal]         = useState(0);
-  const [page, setPage]           = useState(1);
-  const [loading, setLoading]     = useState(false);
-  const [selected, setSelected]   = useState<string | null>(null);
-  const [syncing, setSyncing]     = useState<Record<string, boolean>>({});
+  const [records, setRecords]       = useState<CallRecord[]>([]);
+  const [total, setTotal]           = useState(0);
+  const [page, setPage]             = useState(1);
+  const [loading, setLoading]       = useState(false);
+  const [selected, setSelected]     = useState<string | null>(null);
+  const [syncing, setSyncing]       = useState<Record<string, boolean>>({});
+  const [followUp, setFollowUp]     = useState<CallRecord | null>(null);
   const LIMIT = 20;
 
   const load = useCallback(async (p: number) => {
@@ -166,6 +239,15 @@ export default function CallsDashboard() {
       {/* Selected transcript drawer */}
       {selected && (
         <TranscriptDrawer callId={selected} onClose={() => setSelected(null)} />
+      )}
+
+      {/* Follow-up confirmation modal */}
+      {followUp && (
+        <FollowUpModal
+          rec={followUp}
+          onClose={() => setFollowUp(null)}
+          onSuccess={(newRec) => setRecords((prev) => [newRec, ...prev])}
+        />
       )}
 
       {/* Header */}
@@ -226,7 +308,7 @@ export default function CallsDashboard() {
                 <th className="px-5 py-3">Status</th>
                 <th className="px-5 py-3">Entries</th>
                 <th className="px-5 py-3">Date</th>
-                <th className="px-5 py-3" colSpan={2}></th>
+                <th className="px-5 py-3" colSpan={3}></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -269,6 +351,16 @@ export default function CallsDashboard() {
                         Sync
                       </button>
                     )}
+                  </td>
+                  <td className="px-3 py-3.5">
+                    <button
+                      onClick={() => setFollowUp(rec)}
+                      title="Place a follow-up call to this lead"
+                      className="flex items-center gap-1 rounded-lg border border-sky-200 bg-sky-50 px-2.5 py-1.5 text-xs font-medium text-sky-700 hover:bg-sky-100 transition"
+                    >
+                      <PhoneForwarded className="h-3.5 w-3.5" />
+                      Follow-up
+                    </button>
                   </td>
                 </tr>
               ))}
