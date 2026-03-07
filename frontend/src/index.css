@@ -43,7 +43,29 @@
 
 /* Smooth ReactFlow edge animations */
 .react-flow__edge-path {
-  transition: stroke 0.2s;
+  transition: stroke 0.15s, stroke-width 0.15s;
+}
+
+/* Edges are clickable — show pointer cursor */
+.react-flow__edge {
+  cursor: pointer;
+}
+
+/* Hovered edge — subtle purple lift */
+.react-flow__edge:hover .react-flow__edge-path {
+  stroke: #818cf8 !important;
+  stroke-width: 2.5px !important;
+}
+
+/* Selected edge — clearly red so user knows what will be deleted */
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #ef4444 !important;
+  stroke-width: 3px !important;
+}
+
+/* Selected edge label / interaction area */
+.react-flow__edge.selected .react-flow__edge-interaction {
+  stroke: #ef4444 !important;
 }
 /* ────────────────────────────────────────────────────────────────────────── */
 

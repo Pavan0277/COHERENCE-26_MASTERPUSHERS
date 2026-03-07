@@ -9,7 +9,7 @@ import {
   ReactFlowProvider,
   Panel,
 } from "@xyflow/react";
-import type { Node, Edge, Connection, ReactFlowInstance } from "@xyflow/react";
+import type { Node, Edge, Connection, ReactFlowInstance, NodeChange } from "@xyflow/react";
 import type { KeyboardEventHandler } from "react";
 import "@xyflow/react/dist/style.css";
 
@@ -217,15 +217,17 @@ function WorkflowBuilderInner() {
   const [showAiModal, setShowAiModal]         = useState(false);
   const [toast, setToast]                     = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [paletteSearch, setPaletteSearch]       = useState("");
 
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
 
-  // Keep selectedNode in sync when nodes array changes
+  // Keep selectedNode in sync; close panel when the node is deleted
   useEffect(() => {
     if (!selectedNode) return;
     const latest = nodes.find((n) => n.id === selectedNode.id);
     if (latest) setSelectedNode(latest);
+    else setSelectedNode(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodes]);
 
@@ -312,23 +314,36 @@ function WorkflowBuilderInner() {
     setSelectedNode(null);
   }, []);
 
-  // Keyboard Delete / Backspace removes selected node; ⌘S / Ctrl+S saves
+  // Close the config panel when the currently-displayed node is removed
+  // (covers keyboard delete, toolbar delete, and any other deletion path)
+  const onNodesChangeLocal = useCallback(
+    (changes: NodeChange[]) => {
+      const removedIds = changes
+        .filter((c): c is { type: "remove"; id: string } => c.type === "remove")
+        .map((c) => c.id);
+      if (selectedNode && removedIds.includes(selectedNode.id)) {
+        setSelectedNode(null);
+      }
+      onNodesChange(changes);
+    },
+    [selectedNode, onNodesChange]
+  );
+
+  // Clicking an edge de-selects the node config panel
+  const onEdgeClickHandler = useCallback(() => {
+    setSelectedNode(null);
+  }, []);
+
+  // ⌘S / Ctrl+S saves; Delete key is handled natively by ReactFlow
   const onKeyDown: KeyboardEventHandler = useCallback(
     (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "s") {
         e.preventDefault();
         handleSave();
-        return;
-      }
-      if ((e.key === "Delete" || e.key === "Backspace") && selectedNode) {
-        const tag = (e.target as HTMLElement).tagName;
-        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-        removeNode(selectedNode.id);
-        setSelectedNode(null);
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selectedNode, removeNode]
+    []
   );
 
   const handleDeleteNode = (nodeId: string) => {
@@ -346,10 +361,14 @@ function WorkflowBuilderInner() {
     }));
 
   const handleSave = async () => {
+    if (!workflowName.trim()) {
+      showToast("Please enter a workflow name", "error");
+      return;
+    }
     setSaving(true);
     try {
       const payload = {
-        name: workflowName,
+        name: workflowName.trim(),
         nodes: serializeNodes(),
         edges: edges.map((e: Edge) => ({
           id: e.id,
@@ -412,7 +431,7 @@ function WorkflowBuilderInner() {
         target: e.target,
         animated: true,
         markerEnd: { type: MarkerType.ArrowClosed },
-        style: { strokeWidth: 2 },
+        style: { strokeWidth: 2, stroke: "#6366f1" },
       })
     );
     setWorkflow(workflowId || "", workflowName, newNodes, newEdges);
@@ -448,7 +467,13 @@ function WorkflowBuilderInner() {
           <input
             value={workflowName}
             onChange={(e) => setWorkflowName(e.target.value)}
-            className="min-w-0 max-w-sm flex-1 rounded-lg border border-transparent bg-transparent px-2 py-1 text-[15px] font-semibold text-slate-800 hover:border-slate-200 focus:border-indigo-300 focus:bg-slate-50/80 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition-all"
+            placeholder="Workflow name"
+            aria-label="Workflow name"
+            className={`min-w-0 max-w-sm flex-1 rounded-lg border bg-transparent px-2 py-1 text-[15px] font-semibold text-slate-800 hover:border-slate-200 focus:bg-slate-50/80 focus:outline-none focus:ring-2 transition-all ${
+              workflowName.trim()
+                ? "border-transparent focus:border-indigo-300 focus:ring-indigo-100"
+                : "border-red-300 focus:border-red-400 focus:ring-red-100"
+            }`}
           />
         </div>
 
@@ -511,9 +536,29 @@ function WorkflowBuilderInner() {
             </button>
           </div>
 
+          {/* Palette search — hidden when collapsed */}
+          {!sidebarCollapsed && (
+            <div className="px-2 pt-2 pb-1">
+              <input
+                type="search"
+                value={paletteSearch}
+                onChange={(e) => setPaletteSearch(e.target.value)}
+                placeholder="Search nodes\u2026"
+                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-[12px] text-slate-700 placeholder-slate-400 focus:border-indigo-300 focus:outline-none focus:ring-1 focus:ring-indigo-100"
+              />
+            </div>
+          )}
+
           {/* Node palette */}
           <div className="flex-1 space-y-0.5 overflow-y-auto px-2 py-2">
-            {NODE_PALETTE.map((item) => (
+            {(paletteSearch
+              ? NODE_PALETTE.filter(
+                  (item) =>
+                    item.label.toLowerCase().includes(paletteSearch.toLowerCase()) ||
+                    item.description.toLowerCase().includes(paletteSearch.toLowerCase())
+                )
+              : NODE_PALETTE
+            ).map((item) => (
               <button
                 type="button"
                 key={item.type}
@@ -590,7 +635,11 @@ function WorkflowBuilderInner() {
             </div>
             <div className="flex items-center gap-2">
               <kbd className="rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 text-[10px] font-mono text-slate-500">Del</kbd>
-              <span className="text-[11px] text-slate-500">Delete selected</span>
+              <span className="text-[11px] text-slate-500">Delete node / edge</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <kbd className="rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 text-[10px] font-mono text-slate-500">click edge</kbd>
+              <span className="text-[11px] text-slate-500">Select, then Del</span>
             </div>
           </div>
           )}
@@ -608,11 +657,12 @@ function WorkflowBuilderInner() {
             <ReactFlow
               nodes={nodes}
               edges={edges}
-              onNodesChange={onNodesChange}
+              onNodesChange={onNodesChangeLocal}
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
               onNodeClick={onNodeClick}
               onPaneClick={onPaneClick}
+              onEdgeClick={onEdgeClickHandler}
               onInit={setRfInstance}
               nodeTypes={nodeTypes}
               fitView
@@ -622,7 +672,7 @@ function WorkflowBuilderInner() {
                 markerEnd: { type: MarkerType.ArrowClosed },
                 style: { strokeWidth: 2, stroke: "#6366f1" },
               }}
-              deleteKeyCode={null}
+              deleteKeyCode="Delete"
             >
               <Background gap={20} size={1.5} color="#e2e8f0" />
               <Controls className="!rounded-xl !border !border-slate-200 !shadow-lg" />
@@ -633,8 +683,18 @@ function WorkflowBuilderInner() {
                 className="!rounded-xl !border !border-slate-200 !shadow-lg"
                 nodeColor={(node) => {
                   const colors: Record<string, string> = {
-                    upload: "#3b82f6", filter: "#8b5cf6", ai_message: "#10b981",
-                    send: "#f97316", delay: "#64748b", call: "#0ea5e9",
+                    upload:       "#3b82f6", filter:       "#8b5cf6",
+                    ai_message:   "#10b981", send:         "#f97316",
+                    delay:        "#64748b", call:         "#0ea5e9",
+                    webhook:      "#f43f5e", condition:    "#f59e0b",
+                    tag:          "#6366f1", sms:          "#d946ef",
+                    score:        "#06b6d4", notify:       "#059669",
+                    split:        "#7c3aed", update_field: "#14b8a6",
+                    ai_classify:  "#ec4899", whatsapp:     "#16a34a",
+                    linkedin:     "#1d4ed8", wait_until:   "#ea580c",
+                    transform:    "#78716c", stop:         "#ef4444",
+                    enrich:       "#ca8a04", meeting:      "#0d9488",
+                    http_request: "#374151",
                   };
                   return colors[node.type || ""] || "#94a3b8";
                 }}

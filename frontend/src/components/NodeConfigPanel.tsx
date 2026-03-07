@@ -86,7 +86,7 @@ const TYPE_COLORS: Record<string, string> = {
   http_request: "from-gray-700 to-gray-800",
 };
 
-export default function NodeConfigPanel({ node, workflowId, onUpdateConfig, onClose }: Props) {
+export default function NodeConfigPanel({ node, workflowId, onUpdateConfig, onClose }: Readonly<Props>) {
   const config = node.data.config || {};
 
   const renderPanel = () => {

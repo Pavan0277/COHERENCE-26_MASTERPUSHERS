@@ -51,7 +51,17 @@ export const useWorkflow = create<WorkflowState>((set) => ({
     set((s) => ({ edges: applyEdgeChanges(changes, s.edges) })),
 
   onConnect: (connection) =>
-    set((s) => ({ edges: addEdge({ ...connection, animated: true }, s.edges) })),
+    set((s) => ({
+      edges: addEdge(
+        {
+          ...connection,
+          animated: true,
+          markerEnd: { type: "arrowclosed" },
+          style: { strokeWidth: 2, stroke: "#6366f1" },
+        },
+        s.edges
+      ),
+    })),
 
   addNode: (node) =>
     set((s) => ({ nodes: [...s.nodes, node] })),
@@ -101,7 +111,7 @@ export const useWorkflow = create<WorkflowState>((set) => ({
 
 /** Legacy provider shim — no longer wraps anything but kept so existing
  *  imports of WorkflowProvider in main.tsx don't break during migration. */
-export function WorkflowProvider({ children }: { children: React.ReactNode }) {
+export function WorkflowProvider({ children }: Readonly<{ children: React.ReactNode }>) {
   return <>{children}</>;
 }
 
