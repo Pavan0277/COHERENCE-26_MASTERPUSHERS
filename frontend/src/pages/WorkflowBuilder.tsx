@@ -37,7 +37,6 @@ import {
   Timer,
   Save,
   Play,
-  Wand2,
   Loader2,
   ChevronLeft,
   Trash2,
@@ -353,12 +352,6 @@ function WorkflowBuilderInner() {
         />
         <div className="flex items-center gap-2 ml-auto">
           <button
-            onClick={() => setShowAiModal(true)}
-            className="flex items-center gap-1.5 rounded-lg border border-purple-200 bg-purple-50 px-3 py-1.5 text-sm font-medium text-purple-700 hover:bg-purple-100"
-          >
-            <Wand2 className="h-4 w-4" /> Generate with AI
-          </button>
-          <button
             onClick={handleRun}
             disabled={running || !workflowId}
             className="flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
@@ -509,7 +502,20 @@ function WorkflowBuilderInner() {
         )}
       </div>
 
-      {/* AI Generate Modal */}
+      {/* Floating AI Assistant button + panel */}
+      {!showAiModal && (
+        <button
+          onClick={() => setShowAiModal(true)}
+          className="fixed bottom-6 right-6 z-50 group flex items-center gap-2 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 px-4 py-3 text-white shadow-lg shadow-purple-200 hover:shadow-xl hover:shadow-purple-300 hover:scale-105 active:scale-95 transition-all duration-200"
+          title="Open AI Workflow Assistant"
+        >
+          <span className="relative flex h-5 w-5 shrink-0">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-25" />
+            <Sparkles className="relative h-5 w-5" />
+          </span>
+          <span className="text-sm font-semibold tracking-tight">AI Assistant</span>
+        </button>
+      )}
       {showAiModal && (
         <AiGeneratorModal
           onGenerate={handleAiGenerate}
