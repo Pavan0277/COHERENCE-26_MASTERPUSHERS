@@ -29,6 +29,13 @@ import AiMessageNode from "../components/nodes/AiMessageNode";
 import SendNode from "../components/nodes/SendNode";
 import DelayNode from "../components/nodes/DelayNode";
 import CallNode from "../components/nodes/CallNode";
+import WebhookNode from "../components/nodes/WebhookNode";
+import ConditionNode from "../components/nodes/ConditionNode";
+import TagNode from "../components/nodes/TagNode";
+import SmsNode from "../components/nodes/SmsNode";
+import ScoreNode from "../components/nodes/ScoreNode";
+import NotifyNode from "../components/nodes/NotifyNode";
+import SplitNode from "../components/nodes/SplitNode";
 
 import {
   Upload,
@@ -49,15 +56,27 @@ import {
   MessageSquare,
   GitBranch,
   Plus,
+  Webhook,
+  Tag,
+  Star,
+  Bell,
+  Shuffle,
 } from "lucide-react";
 
 const nodeTypes = {
-  upload: UploadNode,
-  filter: FilterNode,
+  upload:    UploadNode,
+  filter:    FilterNode,
   ai_message: AiMessageNode,
-  send: SendNode,
-  delay: DelayNode,
-  call: CallNode,
+  send:      SendNode,
+  delay:     DelayNode,
+  call:      CallNode,
+  webhook:   WebhookNode,
+  condition: ConditionNode,
+  tag:       TagNode,
+  sms:       SmsNode,
+  score:     ScoreNode,
+  notify:    NotifyNode,
+  split:     SplitNode,
 };
 
 const NODE_PALETTE = [
@@ -66,7 +85,14 @@ const NODE_PALETTE = [
   { type: "ai_message", label: "AI Message",   description: "Generate with Gemini",       icon: Sparkles, color: "bg-green-500",  text: "text-green-700",  bg: "bg-green-50" },
   { type: "send",       label: "Send Message", description: "Email · Slack · Telegram",   icon: Send,     color: "bg-orange-500", text: "text-orange-700", bg: "bg-orange-50" },
   { type: "delay",      label: "Delay",        description: "Wait before next step",      icon: Timer,    color: "bg-gray-500",   text: "text-gray-700",   bg: "bg-gray-50" },
-  { type: "call",       label: "VAPI Call",     description: "AI voice call via VAPI",     icon: Phone,    color: "bg-sky-500",    text: "text-sky-700",    bg: "bg-sky-50" },
+  { type: "call",       label: "VAPI Call",    description: "AI voice call via VAPI",     icon: Phone,    color: "bg-sky-500",    text: "text-sky-700",    bg: "bg-sky-50" },
+  { type: "webhook",    label: "Webhook",      description: "POST to external URL",       icon: Webhook,  color: "bg-rose-500",   text: "text-rose-700",   bg: "bg-rose-50" },
+  { type: "condition",  label: "Condition",    description: "Branch on lead field",       icon: GitBranch, color: "bg-amber-500", text: "text-amber-700",  bg: "bg-amber-50" },
+  { type: "tag",        label: "Tag Lead",     description: "Label lead for CRM",         icon: Tag,      color: "bg-indigo-500", text: "text-indigo-700", bg: "bg-indigo-50" },
+  { type: "sms",        label: "Send SMS",     description: "SMS via Twilio",             icon: MessageSquare, color: "bg-fuchsia-500", text: "text-fuchsia-700", bg: "bg-fuchsia-50" },
+  { type: "score",      label: "Score Lead",   description: "Add / set lead score",        icon: Star,     color: "bg-cyan-500",    text: "text-cyan-700",    bg: "bg-cyan-50" },
+  { type: "notify",     label: "Notify",       description: "Internal alert to yourself",  icon: Bell,     color: "bg-emerald-500", text: "text-emerald-700", bg: "bg-emerald-50" },
+  { type: "split",      label: "A/B Split",    description: "Random % pass-through",       icon: Shuffle,  color: "bg-violet-500",  text: "text-violet-700",  bg: "bg-violet-50" },
 ] as const;
 
 const NODE_LABELS: Record<string, string> = Object.fromEntries(
@@ -98,11 +124,19 @@ const SEED_EDGES: Edge[] = [
 }));
 
 const DEFAULT_CONFIGS: Record<string, Record<string, unknown>> = {
-  upload: {},
-  filter: { filters: [] },
+  upload:    {},
+  filter:    { filters: [] },
   ai_message: { instructions: "" },
-  send: { platform: "email", followup: false },
-  delay: { min: 3600, max: 7200 },
+  send:      { platform: "email", followup: false },
+  delay:     { min: 3600, max: 7200 },
+  call:      {},
+  webhook:   { url: "", method: "POST" },
+  condition: { column: "email", operator: "not_empty", value: "" },
+  tag:       { tag: "", color: "#6366f1" },
+  sms:       { message: "", from: "" },
+  score:     { value: 10, operation: "add" },
+  notify:    { channel: "email", message: "", subject: "Workflow Notification — {name}" },
+  split:     { percentage: 50 },
 };
 
 function WorkflowBuilderInner() {

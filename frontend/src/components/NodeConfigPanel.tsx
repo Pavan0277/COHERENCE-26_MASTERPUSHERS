@@ -5,6 +5,13 @@ import AiMessagePanel from "./panels/AiMessagePanel";
 import SendPanel from "./panels/SendPanel";
 import DelayPanel from "./panels/DelayPanel";
 import CallPanel from "./panels/CallPanel";
+import WebhookPanel from "./panels/WebhookPanel";
+import ConditionPanel from "./panels/ConditionPanel";
+import TagPanel from "./panels/TagPanel";
+import SmsPanel from "./panels/SmsPanel";
+import ScorePanel from "./panels/ScorePanel";
+import NotifyPanel from "./panels/NotifyPanel";
+import SplitPanel from "./panels/SplitPanel";
 
 interface Props {
   node: {
@@ -18,21 +25,35 @@ interface Props {
 }
 
 const TYPE_LABELS: Record<string, string> = {
-  upload: "Upload Leads",
-  filter: "Filter",
+  upload:     "Upload Leads",
+  filter:     "Filter",
   ai_message: "AI Message",
-  send: "Send",
-  delay: "Delay",
-  call: "VAPI Call",
+  send:       "Send",
+  delay:      "Delay",
+  call:       "VAPI Call",
+  webhook:    "Webhook",
+  condition:  "Condition",
+  tag:        "Tag Lead",
+  sms:        "Send SMS",
+  score:      "Score Lead",
+  notify:     "Notify",
+  split:      "A/B Split",
 };
 
 const TYPE_COLORS: Record<string, string> = {
-  upload: "from-blue-500 to-blue-600",
-  filter: "from-yellow-400 to-yellow-500",
+  upload:     "from-blue-500 to-blue-600",
+  filter:     "from-yellow-400 to-yellow-500",
   ai_message: "from-purple-500 to-purple-600",
-  send: "from-green-500 to-green-600",
-  delay: "from-orange-400 to-orange-500",
-  call: "from-sky-500 to-sky-600",
+  send:       "from-green-500 to-green-600",
+  delay:      "from-orange-400 to-orange-500",
+  call:       "from-sky-500 to-sky-600",
+  webhook:    "from-rose-500 to-rose-600",
+  condition:  "from-amber-400 to-amber-500",
+  tag:        "from-indigo-500 to-indigo-600",
+  sms:        "from-fuchsia-500 to-fuchsia-600",
+  score:      "from-cyan-500 to-cyan-600",
+  notify:     "from-emerald-500 to-emerald-600",
+  split:      "from-violet-500 to-violet-600",
 };
 
 export default function NodeConfigPanel({ node, workflowId, onUpdateConfig, onClose }: Props) {
@@ -80,6 +101,62 @@ export default function NodeConfigPanel({ node, workflowId, onUpdateConfig, onCl
         return (
           <CallPanel
             config={config as { assistantId?: string; phoneNumberId?: string }}
+            onChange={(c) => onUpdateConfig(node.id, c as unknown as Record<string, unknown>)}
+            onClose={onClose}
+          />
+        );
+      case "webhook":
+        return (
+          <WebhookPanel
+            config={config as { url?: string; method?: string }}
+            onChange={(c) => onUpdateConfig(node.id, c as unknown as Record<string, unknown>)}
+            onClose={onClose}
+          />
+        );
+      case "condition":
+        return (
+          <ConditionPanel
+            config={config as { column?: string; operator?: string; value?: string }}
+            onChange={(c) => onUpdateConfig(node.id, c as unknown as Record<string, unknown>)}
+            onClose={onClose}
+          />
+        );
+      case "tag":
+        return (
+          <TagPanel
+            config={config as { tag?: string; color?: string }}
+            onChange={(c) => onUpdateConfig(node.id, c as unknown as Record<string, unknown>)}
+            onClose={onClose}
+          />
+        );
+      case "sms":
+        return (
+          <SmsPanel
+            config={config as { message?: string; from?: string }}
+            onChange={(c) => onUpdateConfig(node.id, c as unknown as Record<string, unknown>)}
+            onClose={onClose}
+          />
+        );
+      case "score":
+        return (
+          <ScorePanel
+            config={config as { value?: number; operation?: "add" | "subtract" | "set" }}
+            onChange={(c) => onUpdateConfig(node.id, c as unknown as Record<string, unknown>)}
+            onClose={onClose}
+          />
+        );
+      case "notify":
+        return (
+          <NotifyPanel
+            config={config as { channel?: "email" | "slack"; message?: string; subject?: string }}
+            onChange={(c) => onUpdateConfig(node.id, c as unknown as Record<string, unknown>)}
+            onClose={onClose}
+          />
+        );
+      case "split":
+        return (
+          <SplitPanel
+            config={config as { percentage?: number }}
             onChange={(c) => onUpdateConfig(node.id, c as unknown as Record<string, unknown>)}
             onClose={onClose}
           />
