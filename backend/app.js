@@ -39,6 +39,10 @@ app.use("/api/settings", settingsRouter);
 app.use("/api/analytics", analyticsRouter);
 app.use("/api/calls", callsRouter);
 
+app.get("/", (req, res) => {
+    res.send("Welcome to the Sales Outreach System API");
+});
+
 // Global error handler
 app.use((err, req, res, next) => {
     const status = err.status || err.statusCode || 500;
