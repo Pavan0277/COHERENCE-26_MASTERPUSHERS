@@ -1,15 +1,19 @@
 import {
     listTranscriptsByUser,
     getTranscriptByCallId,
+    getTranscriptByVapiId,
     updateCallStatusByVapiId,
     addTranscriptEntryByVapiId,
     setFullTranscriptByVapiId,
+    syncCallFromVapi,
 } from "../services/transcriptService.js";
+import { UserSettings } from "../models/userSettings.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 /**
  * GET /api/calls/transcripts
  * List all call transcripts for the authenticated user.
+ * Auto-syncs calls that are stuck in non-terminal states.
  * Query params: workflowId, page, limit
  */
 export const listTranscripts = asyncHandler(async (req, res) => {
@@ -19,12 +23,30 @@ export const listTranscripts = asyncHandler(async (req, res) => {
     const limit = parseInt(req.query.limit, 10) || 20;
 
     const result = await listTranscriptsByUser(userId, { workflowId, page, limit });
+
+    // Fire-and-forget: auto-sync calls that have a vapiId but are not yet terminal
+    const TERMINAL = new Set(["completed", "failed", "no-answer"]);
+    const stuckCalls = result.records.filter(
+        (r) => r.vapiId && !TERMINAL.has(r.status)
+    );
+    if (stuckCalls.length > 0) {
+        const settings = await UserSettings.findOne({ userId }).lean().catch(() => null);
+        const vapiApiKey = settings?.vapi?.apiKey || null;
+        // Sync all stuck calls in parallel, ignore errors
+        Promise.all(
+            stuckCalls.map((r) => syncCallFromVapi(r.vapiId, vapiApiKey).catch(() => null))
+        ).then(() => {
+            console.log(`[AutoSync] Synced ${stuckCalls.length} stuck call(s) for user ${userId}`);
+        }).catch(() => null);
+    }
+
     res.json(result);
 });
 
 /**
  * GET /api/calls/transcripts/:callId
  * Fetch a single transcript by callId.
+ * Auto-syncs from VAPI if the call is not yet terminal.
  */
 export const getTranscript = asyncHandler(async (req, res) => {
     const transcript = await getTranscriptByCallId(req.params.callId);
@@ -35,7 +57,44 @@ export const getTranscript = asyncHandler(async (req, res) => {
     if (transcript.userId?.toString() !== req.user._id.toString()) {
         return res.status(403).json({ message: "Access denied" });
     }
+
+    const TERMINAL = new Set(["completed", "failed", "no-answer"]);
+    if (transcript.vapiId && !TERMINAL.has(transcript.status)) {
+        // Sync and return refreshed data
+        const settings = await UserSettings.findOne({ userId: req.user._id }).lean().catch(() => null);
+        const vapiApiKey = settings?.vapi?.apiKey || null;
+        const updated = await syncCallFromVapi(transcript.vapiId, vapiApiKey).catch(() => null);
+        if (updated) return res.json(updated);
+    }
+
     res.json(transcript);
+});
+
+/**
+ * POST /api/calls/sync/:vapiId
+ * Manually sync a call's status and transcript from VAPI API.
+ * Useful when the webhook was not reachable (e.g., localhost dev).
+ */
+export const syncCall = asyncHandler(async (req, res) => {
+    const { vapiId } = req.params;
+
+    // Verify the call belongs to this user
+    const existing = await getTranscriptByVapiId(vapiId);
+    if (!existing) {
+        return res.status(404).json({ message: "Call not found" });
+    }
+    if (existing.userId?.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ message: "Access denied" });
+    }
+
+    const settings  = await UserSettings.findOne({ userId: req.user._id }).lean().catch(() => null);
+    const vapiApiKey = settings?.vapi?.apiKey || null;
+
+    const updated = await syncCallFromVapi(vapiId, vapiApiKey);
+    if (!updated) {
+        return res.status(404).json({ message: "No record found for this vapiId" });
+    }
+    res.json(updated);
 });
 
 /**

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://nondiagrammatic-bonny-unbiologically.ngrok-free.dev/api",
+  baseURL: "http://localhost:3000/api",
   withCredentials: false,  headers: {
     "ngrok-skip-browser-warning": "true",
   },});
@@ -68,5 +68,8 @@ export const getCallTranscripts = (params?: { workflowId?: string; page?: number
 
 export const getCallTranscript = (callId: string) =>
   API.get(`/calls/transcripts/${callId}`);
+
+export const syncCallTranscript = (vapiId: string) =>
+  API.post(`/calls/sync/${vapiId}`);
 
 export default API;

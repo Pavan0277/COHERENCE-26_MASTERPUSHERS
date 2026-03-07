@@ -1,4 +1,5 @@
 import { CallTranscript } from "../models/CallTranscript.model.js";
+import { fetchCallFromVapi } from "./vapi.service.js";
 
 export async function createInitialTranscript(callId, vapiId, phoneNumber, userId, workflowId, leadId) {
     return CallTranscript.create({
@@ -102,4 +103,73 @@ export async function listTranscriptsByUser(userId, { workflowId, page = 1, limi
         CallTranscript.countDocuments(query),
     ]);
     return { records, total, page, limit };
+}
+
+const VAPI_STATUS_MAP = {
+    queued:        "initiated",
+    ringing:       "ringing",
+    "in-progress": "in-progress",
+    forwarding:    "in-progress",
+    ended:         "completed",
+};
+
+const SPEAKER_ROLES = new Set(["user", "assistant", "bot"]);
+
+/**
+ * Fetch latest call data from VAPI API and sync it to our DB.
+ * Used for manual sync (when webhooks are unavailable on localhost)
+ * and auto-sync on list/fetch.
+ */
+export async function syncCallFromVapi(vapiId, apiKeyOverride = null) {
+    const data = await fetchCallFromVapi(vapiId, apiKeyOverride);
+
+    const rawStatus = data.status || "";
+    const status    = VAPI_STATUS_MAP[rawStatus] || rawStatus;
+
+    // Extract messages from artifact (structured) or plain-text transcript
+    const messages      = data.artifact?.messages || [];
+    const rawTranscript = data.artifact?.transcript || data.transcript || "";
+    const duration      = data.endedAt && data.startedAt
+        ? Math.round((new Date(data.endedAt) - new Date(data.startedAt)) / 1000)
+        : (data.duration || 0);
+    const summary = data.analysis?.summary || data.summary || null;
+
+    let transcript = [];
+
+    if (messages.length > 0) {
+        transcript = messages
+            .filter((m) => SPEAKER_ROLES.has(m.role) && (m.message || m.content))
+            .map((m) => ({
+                role:      m.role === "user" ? "caller" : "ai",
+                content:   String(m.message || m.content).trim(),
+                timestamp: m.time ? new Date(m.time * 1000) : new Date(),
+            }))
+            .filter((e) => e.content.length > 0);
+    } else if (typeof rawTranscript === "string" && rawTranscript.trim()) {
+        transcript = rawTranscript
+            .split("\n")
+            .map((line) => line.trim())
+            .filter(Boolean)
+            .map((line) => {
+                const lower = line.toLowerCase();
+                const isUser = lower.startsWith("user:") || lower.startsWith("caller:");
+                return {
+                    role:      isUser ? "caller" : "ai",
+                    content:   line.replace(/^[^:]+:\s*/i, "").trim(),
+                    timestamp: new Date(),
+                };
+            })
+            .filter((e) => e.content.length > 0);
+    }
+
+    const update = { status };
+    if (transcript.length > 0) update.transcript = transcript;
+    if (duration > 0)          update.duration    = duration;
+    if (summary)               update.summary     = String(summary);
+
+    return CallTranscript.findOneAndUpdate(
+        { vapiId },
+        { $set: update },
+        { new: true }
+    );
 }

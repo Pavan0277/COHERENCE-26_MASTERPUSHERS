@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { verifyJWT } from "../middlewares/auth.middlewares.js";
-import { listTranscripts, getTranscript, vapiWebhook } from "../controller/calls.controller.js";
+import { listTranscripts, getTranscript, vapiWebhook, syncCall } from "../controller/calls.controller.js";
 
 const callsRouter = Router();
 
@@ -8,7 +8,8 @@ const callsRouter = Router();
 callsRouter.post("/webhook/vapi", vapiWebhook);
 
 // Protected routes
-callsRouter.get("/transcripts",        verifyJWT, listTranscripts);
-callsRouter.get("/transcripts/:callId", verifyJWT, getTranscript);
+callsRouter.get("/transcripts",          verifyJWT, listTranscripts);
+callsRouter.get("/transcripts/:callId",  verifyJWT, getTranscript);
+callsRouter.post("/sync/:vapiId",         verifyJWT, syncCall);
 
 export { callsRouter };

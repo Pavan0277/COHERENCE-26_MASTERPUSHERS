@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
-import { Phone, ChevronDown, ChevronUp, RefreshCw, Clock, User, PhoneCall } from "lucide-react";
-import { getCallTranscripts, getCallTranscript } from "../services/api";
+import { Phone, ChevronDown, ChevronUp, RefreshCw, User, PhoneCall } from "lucide-react";
+import { getCallTranscripts, getCallTranscript, syncCallTranscript } from "../services/api";
 
 interface TranscriptEntry {
   role: "caller" | "ai" | "system";
@@ -14,7 +14,6 @@ interface CallRecord {
   vapiId?: string;
   phoneNumber?: string;
   status: string;
-  duration?: number;
   transcript: TranscriptEntry[];
   summary?: string;
   createdAt: string;
@@ -29,13 +28,6 @@ const STATUS_COLORS: Record<string, string> = {
   failed:      "bg-red-100 text-red-700",
   "no-answer": "bg-orange-100 text-orange-700",
 };
-
-function formatDuration(sec?: number) {
-  if (!sec) return "—";
-  const m = Math.floor(sec / 60);
-  const s = sec % 60;
-  return `${m}m ${s}s`;
-}
 
 function TranscriptDrawer({ callId, onClose }: { callId: string; onClose: () => void }) {
   const [data, setData] = useState<CallRecord | null>(null);
@@ -125,12 +117,15 @@ function TranscriptDrawer({ callId, onClose }: { callId: string; onClose: () => 
   );
 }
 
+const TERMINAL_STATUSES = new Set(["completed", "failed", "no-answer"]);
+
 export default function CallsDashboard() {
-  const [records, setRecords]   = useState<CallRecord[]>([]);
-  const [total, setTotal]       = useState(0);
-  const [page, setPage]         = useState(1);
-  const [loading, setLoading]   = useState(false);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [records, setRecords]     = useState<CallRecord[]>([]);
+  const [total, setTotal]         = useState(0);
+  const [page, setPage]           = useState(1);
+  const [loading, setLoading]     = useState(false);
+  const [selected, setSelected]   = useState<string | null>(null);
+  const [syncing, setSyncing]     = useState<Record<string, boolean>>({});
   const LIMIT = 20;
 
   const load = useCallback(async (p: number) => {
@@ -144,6 +139,21 @@ export default function CallsDashboard() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  }, []);
+
+  const handleSync = useCallback(async (rec: CallRecord) => {
+    if (!rec.vapiId) return;
+    setSyncing((prev) => ({ ...prev, [rec._id]: true }));
+    try {
+      const res = await syncCallTranscript(rec.vapiId);
+      setRecords((prev) =>
+        prev.map((r) => (r._id === rec._id ? { ...r, ...res.data } : r))
+      );
+    } catch (err) {
+      console.error("Sync failed:", err);
+    } finally {
+      setSyncing((prev) => ({ ...prev, [rec._id]: false }));
     }
   }, []);
 
@@ -214,10 +224,9 @@ export default function CallsDashboard() {
                 <th className="px-5 py-3">Lead</th>
                 <th className="px-5 py-3">Phone</th>
                 <th className="px-5 py-3">Status</th>
-                <th className="px-5 py-3">Duration</th>
                 <th className="px-5 py-3">Entries</th>
                 <th className="px-5 py-3">Date</th>
-                <th className="px-5 py-3"></th>
+                <th className="px-5 py-3" colSpan={2}></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -235,12 +244,6 @@ export default function CallsDashboard() {
                     </span>
                   </td>
                   <td className="px-5 py-3.5 text-gray-500">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {formatDuration(rec.duration)}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3.5 text-gray-500">
                     {rec.transcript.length} msg{rec.transcript.length !== 1 ? "s" : ""}
                   </td>
                   <td className="px-5 py-3.5 text-gray-400 text-xs">
@@ -253,6 +256,19 @@ export default function CallsDashboard() {
                     >
                       View Transcript
                     </button>
+                  </td>
+                  <td className="px-3 py-3.5">
+                    {!TERMINAL_STATUSES.has(rec.status) && rec.vapiId && (
+                      <button
+                        onClick={() => handleSync(rec)}
+                        disabled={syncing[rec._id]}
+                        title="Sync latest status & transcript from VAPI"
+                        className="flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-50 transition disabled:opacity-50"
+                      >
+                        <RefreshCw className={`h-3.5 w-3.5 ${syncing[rec._id] ? "animate-spin" : ""}`} />
+                        Sync
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

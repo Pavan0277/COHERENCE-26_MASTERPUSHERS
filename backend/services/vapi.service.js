@@ -86,3 +86,21 @@ export async function createOutboundCall(toNumber, assistantId = null, phoneNumb
     console.log("[VAPI] Call created:", callId, "| vapiId:", vapiId);
     return { callId, vapiId: vapiId?.toString?.() || String(vapiId) };
 }
+
+/**
+ * Fetch a single call from VAPI API (used for manual sync / polling)
+ * @param {string} vapiId  - VAPI's call UUID
+ * @param {string|null} apiKeyOverride
+ * @returns {Promise<object>} raw VAPI call object
+ */
+export async function fetchCallFromVapi(vapiId, apiKeyOverride = null) {
+    const apiKey = getApiKey(apiKeyOverride);
+    const response = await fetch(`${VAPI_API_BASE}/call/${vapiId}`, {
+        headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`VAPI fetch error ${response.status}: ${errText}`);
+    }
+    return response.json();
+}
