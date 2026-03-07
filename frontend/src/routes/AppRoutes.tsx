@@ -12,6 +12,7 @@ import MainLayout from "../layouts/MainLayout";
 import PrivateRoute from "../components/PrivateRoute";
 import WorkflowBuilder from "../pages/WorkflowBuilder";
 import Settings from "../pages/Settings";
+import CallsDashboard from "../pages/CallsDashboard";
 
 export default function AppRoutes() {
   return (
@@ -31,6 +32,7 @@ export default function AppRoutes() {
           <Route path="/admin/analytics" element={<AdminAnalytics />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/calls" element={<CallsDashboard />} />
           <Route path="/workflows/new" element={<WorkflowBuilder />} />
           <Route path="/workflows/:id" element={<WorkflowBuilder />} />
         </Route>

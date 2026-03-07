@@ -28,6 +28,7 @@ import FilterNode from "../components/nodes/FilterNode";
 import AiMessageNode from "../components/nodes/AiMessageNode";
 import SendNode from "../components/nodes/SendNode";
 import DelayNode from "../components/nodes/DelayNode";
+import CallNode from "../components/nodes/CallNode";
 
 import {
   Upload,
@@ -35,6 +36,7 @@ import {
   Sparkles,
   Send,
   Timer,
+  Phone,
   Save,
   Play,
   Wand2,
@@ -53,6 +55,7 @@ const nodeTypes = {
   ai_message: AiMessageNode,
   send: SendNode,
   delay: DelayNode,
+  call: CallNode,
 };
 
 const NODE_PALETTE = [
@@ -61,6 +64,7 @@ const NODE_PALETTE = [
   { type: "ai_message", label: "AI Message",   description: "Generate with Gemini",       icon: Sparkles, color: "bg-green-500",  text: "text-green-700",  bg: "bg-green-50" },
   { type: "send",       label: "Send Message", description: "Email · Slack · Telegram",   icon: Send,     color: "bg-orange-500", text: "text-orange-700", bg: "bg-orange-50" },
   { type: "delay",      label: "Delay",        description: "Wait before next step",      icon: Timer,    color: "bg-gray-500",   text: "text-gray-700",   bg: "bg-gray-50" },
+  { type: "call",       label: "VAPI Call",     description: "AI voice call via VAPI",     icon: Phone,    color: "bg-sky-500",    text: "text-sky-700",    bg: "bg-sky-50" },
 ] as const;
 
 const NODE_LABELS: Record<string, string> = Object.fromEntries(

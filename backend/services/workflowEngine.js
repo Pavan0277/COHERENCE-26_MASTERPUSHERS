@@ -7,6 +7,8 @@ import { applyFilter } from "../utils/filterEngine.js";
 import { generateOutreachMessage } from "./ai.service.js";
 import { sendMessage } from "./messaging.service.js";
 import { scheduleDelayedStep } from "./delay.service.js";
+import { createOutboundCall } from "./vapi.service.js";
+import { createInitialTranscript } from "./transcriptService.js";
 
 /**
  * Build an ordered list of nodes from edges.
@@ -138,6 +140,27 @@ async function executeNode(node, lead, context) {
             return { continue: false, message: "Paused for delay" };
         }
 
+        case "call": {
+            const phone = lead.phone;
+            if (!phone) {
+                return { continue: true, message: "Lead has no phone number — call skipped" };
+            }
+            const assistantId  = config.assistantId  || context.vapiSettings?.assistantId  || null;
+            const phoneNumId   = config.phoneNumberId || context.vapiSettings?.phoneNumberId || null;
+            const vapiApiKey   = context.vapiSettings?.apiKey || null;
+            const { callId, vapiId } = await createOutboundCall(phone, assistantId, phoneNumId, vapiApiKey);
+            await createInitialTranscript(
+                callId,
+                vapiId,
+                phone,
+                context.userId,
+                context.workflowId,
+                lead._id
+            );
+            console.log(`[Engine] Call initiated for lead ${lead._id}: callId=${callId}`);
+            return { continue: true, message: `Call initiated: ${callId}` };
+        }
+
         default:
             throw new Error(`Unknown node type: ${node.type}`);
     }
@@ -207,6 +230,7 @@ export async function executeWorkflow(workflowId) {
                 slack:    userSettings.slack,
                 telegram: userSettings.telegram,
             } : {},
+            vapiSettings: userSettings?.vapi || {},
         };
 
         let leadStatus = "completed";

@@ -28,6 +28,11 @@ const userSettingsSchema = new mongoose.Schema(
             apiHash:       { type: String, default: "" },
             sessionString: { type: String, default: "" },
         },
+        vapi: {
+            apiKey:        { type: String, default: "" },
+            assistantId:   { type: String, default: "" },
+            phoneNumberId: { type: String, default: "" },
+        },
     },
     { timestamps: true }
 );

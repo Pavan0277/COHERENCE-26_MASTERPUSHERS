@@ -20,16 +20,18 @@ import {
   ShoppingCart,
   BarChart3,
   GitBranch,
+  Phone,
 } from "lucide-react";
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { label: "Workflows", path: "/workflows/new", icon: GitBranch },
-  { label: "Users", path: "/admin/users", icon: Users },
-  { label: "Orders", path: "/admin/orders", icon: ShoppingCart },
+  { label: "Calls",     path: "/calls",         icon: Phone },
+  { label: "Users",     path: "/admin/users",    icon: Users },
+  { label: "Orders",    path: "/admin/orders",   icon: ShoppingCart },
   { label: "Analytics", path: "/admin/analytics", icon: BarChart3 },
-  { label: "Profile", path: "/profile", icon: User },
-  { label: "Settings", path: "/settings", icon: Settings },
+  { label: "Profile",   path: "/profile",        icon: User },
+  { label: "Settings",  path: "/settings",       icon: Settings },
 ];
 
 export default function Sidebar() {

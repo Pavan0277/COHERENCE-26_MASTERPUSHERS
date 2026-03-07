@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Mail, MessageSquare, Send, Save, CheckCircle, Eye, EyeOff } from "lucide-react";
+import { Mail, MessageSquare, Send, Save, CheckCircle, Eye, EyeOff, Phone } from "lucide-react";
 import { getSettings, updateSettings } from "../services/api";
 
-type Tab = "email" | "slack" | "telegram";
+type Tab = "email" | "slack" | "telegram" | "vapi";
 
 interface EmailConfig {
   host: string;
@@ -25,9 +25,16 @@ interface TelegramConfig {
   sessionString: string;
 }
 
+interface VapiConfig {
+  apiKey: string;
+  assistantId: string;
+  phoneNumberId: string;
+}
+
 const DEFAULT_EMAIL: EmailConfig = { host: "smtp.gmail.com", port: 587, secure: false, user: "", pass: "", from: "" };
 const DEFAULT_SLACK: SlackConfig = { webhookUrl: "" };
 const DEFAULT_TELEGRAM: TelegramConfig = { botToken: "", chatId: "", apiId: 0, apiHash: "", sessionString: "" };
+const DEFAULT_VAPI: VapiConfig = { apiKey: "", assistantId: "", phoneNumberId: "" };
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState<Tab>("email");
@@ -35,6 +42,7 @@ export default function Settings() {
   const [email, setEmail]       = useState<EmailConfig>(DEFAULT_EMAIL);
   const [slack, setSlack]       = useState<SlackConfig>(DEFAULT_SLACK);
   const [telegram, setTelegram] = useState<TelegramConfig>(DEFAULT_TELEGRAM);
+  const [vapi, setVapi]         = useState<VapiConfig>(DEFAULT_VAPI);
 
   const [saving, setSaving]   = useState(false);
   const [saved, setSaved]     = useState(false);
@@ -51,6 +59,7 @@ export default function Settings() {
         if (s.email)    setEmail({ ...DEFAULT_EMAIL,    ...s.email,    pass: "" }); // never pre-fill password
         if (s.slack)    setSlack({ ...DEFAULT_SLACK,    ...s.slack });
         if (s.telegram) setTelegram({ ...DEFAULT_TELEGRAM, ...s.telegram });
+        if (s.vapi)     setVapi({ ...DEFAULT_VAPI, ...s.vapi, apiKey: "" }); // never pre-fill API key
       } catch {
         // first load — defaults are fine
       } finally {
@@ -67,7 +76,10 @@ export default function Settings() {
       const emailPayload: Partial<EmailConfig> = { ...email };
       if (!emailPayload.pass) delete emailPayload.pass;
 
-      await updateSettings({ email: emailPayload, slack, telegram });
+      const vapiPayload: Partial<VapiConfig> = { ...vapi };
+      if (!vapiPayload.apiKey) delete vapiPayload.apiKey;
+
+      await updateSettings({ email: emailPayload, slack, telegram, vapi: vapiPayload });
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } catch (e: unknown) {
@@ -81,6 +93,7 @@ export default function Settings() {
     { id: "email",    label: "Email (SMTP)", icon: Mail },
     { id: "slack",    label: "Slack",        icon: MessageSquare },
     { id: "telegram", label: "Telegram",     icon: Send },
+    { id: "vapi",     label: "VAPI",         icon: Phone },
   ];
 
   return (
@@ -341,6 +354,72 @@ export default function Settings() {
                     to find the ID.
                   </p>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── VAPI ── */}
+          {activeTab === "vapi" && (
+            <div className="space-y-5">
+              <div className="rounded-xl border border-sky-100 bg-sky-50 px-4 py-3 text-xs text-sky-700">
+                Configure your{" "}
+                <a href="https://dashboard.vapi.ai" target="_blank" rel="noreferrer" className="underline font-semibold">
+                  VAPI
+                </a>{" "}
+                credentials here. Workflows with a <strong>VAPI Call</strong> node will use these by
+                default, so you don’t have to enter them per-node.
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-600">
+                  API Key
+                </label>
+                <input
+                  type="password"
+                  value={vapi.apiKey}
+                  onChange={(e) => setVapi({ ...vapi, apiKey: e.target.value })}
+                  placeholder="Leave blank to keep existing key"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-sky-400 focus:outline-none"
+                />
+                <p className="mt-1 text-[11px] text-gray-400">
+                  Copy from{" "}
+                  <a href="https://dashboard.vapi.ai" target="_blank" rel="noreferrer" className="text-sky-500 underline">
+                    dashboard.vapi.ai
+                  </a>{" "}
+                  → Account → API Keys.
+                </p>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-600">
+                  Assistant ID <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={vapi.assistantId}
+                  onChange={(e) => setVapi({ ...vapi, assistantId: e.target.value })}
+                  placeholder="e.g. asst_xxxxxxxxxxxxxxxx"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-mono focus:border-sky-400 focus:outline-none"
+                />
+                <p className="mt-1 text-[11px] text-gray-400">
+                  VAPI dashboard → Assistants → copy the ID.
+                </p>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-600">
+                  Phone Number ID <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={vapi.phoneNumberId}
+                  onChange={(e) => setVapi({ ...vapi, phoneNumberId: e.target.value })}
+                  placeholder="e.g. pn_xxxxxxxxxxxxxxxx"
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-mono focus:border-sky-400 focus:outline-none"
+                />
+                <p className="mt-1 text-[11px] text-gray-400">
+                  VAPI dashboard → Phone Numbers → copy the ID.
+                </p>
               </div>
             </div>
           )}

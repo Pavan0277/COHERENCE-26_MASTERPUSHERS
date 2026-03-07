@@ -4,6 +4,7 @@ import FilterPanel from "./panels/FilterPanel";
 import AiMessagePanel from "./panels/AiMessagePanel";
 import SendPanel from "./panels/SendPanel";
 import DelayPanel from "./panels/DelayPanel";
+import CallPanel from "./panels/CallPanel";
 
 interface Props {
   node: {
@@ -22,6 +23,7 @@ const TYPE_LABELS: Record<string, string> = {
   ai_message: "AI Message",
   send: "Send",
   delay: "Delay",
+  call: "VAPI Call",
 };
 
 const TYPE_COLORS: Record<string, string> = {
@@ -30,6 +32,7 @@ const TYPE_COLORS: Record<string, string> = {
   ai_message: "from-purple-500 to-purple-600",
   send: "from-green-500 to-green-600",
   delay: "from-orange-400 to-orange-500",
+  call: "from-sky-500 to-sky-600",
 };
 
 export default function NodeConfigPanel({ node, workflowId, onUpdateConfig, onClose }: Props) {
@@ -69,6 +72,14 @@ export default function NodeConfigPanel({ node, workflowId, onUpdateConfig, onCl
         return (
           <DelayPanel
             config={config as { min?: number; max?: number }}
+            onChange={(c) => onUpdateConfig(node.id, c as unknown as Record<string, unknown>)}
+            onClose={onClose}
+          />
+        );
+      case "call":
+        return (
+          <CallPanel
+            config={config as { assistantId?: string; phoneNumberId?: string }}
             onChange={(c) => onUpdateConfig(node.id, c as unknown as Record<string, unknown>)}
             onClose={onClose}
           />

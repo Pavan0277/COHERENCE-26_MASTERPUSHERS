@@ -58,6 +58,14 @@ export const updateSettings = (data: {
   email?: { host?: string; port?: number; secure?: boolean; user?: string; pass?: string; from?: string };
   slack?: { webhookUrl?: string };
   telegram?: { botToken?: string; chatId?: string };
+  vapi?: { apiKey?: string; assistantId?: string; phoneNumberId?: string };
 }) => API.put("/settings", data);
+
+// ── Calls / VAPI Transcripts ────────────────────────────────
+export const getCallTranscripts = (params?: { workflowId?: string; page?: number; limit?: number }) =>
+  API.get("/calls/transcripts", { params });
+
+export const getCallTranscript = (callId: string) =>
+  API.get(`/calls/transcripts/${callId}`);
 
 export default API;
