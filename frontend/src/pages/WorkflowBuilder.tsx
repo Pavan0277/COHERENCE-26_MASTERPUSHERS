@@ -39,7 +39,6 @@ import {
   Phone,
   Save,
   Play,
-  Wand2,
   Loader2,
   ChevronLeft,
   Trash2,
@@ -73,12 +72,12 @@ const NODE_LABELS: Record<string, string> = Object.fromEntries(
 
 // Seed layout shown for brand-new workflows
 const SEED_NODES: Node[] = [
-  { id: "upload-seed", type: "upload",     position: { x: 260, y: 40 },  data: { label: "Upload Leads", config: {} } },
-  { id: "filter-seed", type: "filter",     position: { x: 260, y: 160 }, data: { label: "Filter",       config: { filters: [] } } },
-  { id: "ai-seed",     type: "ai_message", position: { x: 260, y: 280 }, data: { label: "AI Message",   config: { instructions: "" } } },
-  { id: "send-seed",   type: "send",       position: { x: 260, y: 400 }, data: { label: "Send Message", config: { platform: "email", followup: false } } },
-  { id: "delay-seed",  type: "delay",      position: { x: 260, y: 520 }, data: { label: "Delay",        config: { min: 172800, max: 180000 } } },
-  { id: "followup-seed", type: "send",     position: { x: 260, y: 640 }, data: { label: "Send Message", config: { platform: "email", followup: true } } },
+  { id: "upload-seed", type: "upload",     position: { x: 280, y: 60 },   data: { label: "Upload Leads", config: {} } },
+  { id: "filter-seed", type: "filter",     position: { x: 280, y: 260 },  data: { label: "Filter",       config: { filters: [] } } },
+  { id: "ai-seed",     type: "ai_message", position: { x: 280, y: 460 },  data: { label: "AI Message",   config: { instructions: "" } } },
+  { id: "send-seed",   type: "send",       position: { x: 280, y: 660 },  data: { label: "Send Message", config: { platform: "email", followup: false } } },
+  { id: "delay-seed",  type: "delay",      position: { x: 280, y: 860 },  data: { label: "Delay",        config: { min: 172800, max: 180000 } } },
+  { id: "followup-seed", type: "send",     position: { x: 280, y: 1060 }, data: { label: "Send Message", config: { platform: "email", followup: true } } },
 ];
 
 const SEED_EDGES: Edge[] = [
@@ -334,14 +333,25 @@ function WorkflowBuilderInner() {
     setTimeout(() => rfInstance?.fitView({ padding: 0.3, duration: 500 }), 100);
   };
 
+  const getSaveIcon = () => {
+    if (saving) return <Loader2 className="h-4 w-4 animate-spin" />;
+    if (saved)  return <Check className="h-4 w-4" />;
+    return <Save className="h-4 w-4" />;
+  };
+  const getSaveLabel = () => {
+    if (saving) return "Saving\u2026";
+    if (saved)  return "Saved!";
+    return "Save";
+  };
+
   return (
     <div
-      className="flex h-screen flex-col bg-gray-50 outline-none"
+      className="flex h-screen flex-col bg-gray-50 outline-none overflow-hidden"
       tabIndex={-1}
       onKeyDown={onKeyDown}
     >
       {/* Top bar */}
-      <header className="flex h-14 shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-4 shadow-sm z-10">
+      <header className="flex h-16 shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-5 shadow-sm z-10">
         <button
           onClick={() => navigate("/dashboard")}
           className="rounded-md p-1.5 text-gray-500 hover:bg-gray-100"
@@ -353,19 +363,13 @@ function WorkflowBuilderInner() {
         <input
           value={workflowName}
           onChange={(e) => setWorkflowName(e.target.value)}
-          className="min-w-0 max-w-xs flex-1 rounded-md border border-transparent bg-transparent px-2 py-1 text-base font-semibold text-gray-800 hover:border-gray-200 focus:border-gray-300 focus:outline-none"
+          className="min-w-0 max-w-xs flex-1 rounded-md border border-transparent bg-transparent px-2 py-1.5 text-[17px] font-semibold text-gray-800 hover:border-gray-200 focus:border-gray-300 focus:outline-none"
         />
         <div className="flex items-center gap-2 ml-auto">
           <button
-            onClick={() => setShowAiModal(true)}
-            className="flex items-center gap-1.5 rounded-lg border border-purple-200 bg-purple-50 px-3 py-1.5 text-sm font-medium text-purple-700 hover:bg-purple-100"
-          >
-            <Wand2 className="h-4 w-4" /> Generate with AI
-          </button>
-          <button
             onClick={handleRun}
             disabled={running || !workflowId}
-            className="flex items-center gap-1.5 rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50"
           >
             {running ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
             Run
@@ -373,47 +377,43 @@ function WorkflowBuilderInner() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50 transition ${
+            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 transition ${
               saved
                 ? "bg-green-600 hover:bg-green-700"
                 : "bg-indigo-600 hover:bg-indigo-700"
             }`}
           >
-            {saving ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : saved ? (
-              <Check className="h-4 w-4" />
-            ) : (
-              <Save className="h-4 w-4" />
-            )}
-            {saving ? "Saving…" : saved ? "Saved!" : "Save"}
+            {getSaveIcon()}
+            {getSaveLabel()}
           </button>
         </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
         {/* Left palette */}
-        <aside className="flex w-52 shrink-0 flex-col border-r border-gray-200 bg-white">
-          <div className="border-b border-gray-100 px-4 py-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Nodes</p>
-            <p className="mt-0.5 text-[11px] text-gray-400">Drag onto canvas</p>
+        <aside className="flex w-64 shrink-0 flex-col border-r border-gray-200 bg-white">
+          <div className="border-b border-gray-100 px-4 py-3.5">
+            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Nodes</p>
+            <p className="mt-0.5 text-xs text-gray-400">Drag onto canvas</p>
           </div>
           <div className="flex-1 space-y-2 overflow-y-auto p-3">
             {NODE_PALETTE.map((item) => (
-              <div
+              <button
+                type="button"
                 key={item.type}
                 draggable
+                onKeyDown={(e) => { if (e.key === "Enter") onDragStart(e as unknown as React.DragEvent, item.type); }}
                 onDragStart={(e) => onDragStart(e, item.type)}
-                className={`flex cursor-grab items-center gap-3 rounded-xl border border-gray-100 ${item.bg} p-3 shadow-sm hover:shadow-md active:cursor-grabbing active:opacity-70 transition select-none`}
+                className={`flex w-full cursor-grab items-center gap-3 rounded-xl border border-gray-100 ${item.bg} px-3 py-3 shadow-sm hover:shadow-md active:cursor-grabbing active:opacity-70 transition`}
               >
-                <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${item.color}`}>
-                  <item.icon className="h-4 w-4 text-white" />
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${item.color}`}>
+                  <item.icon className="h-5 w-5 text-white" />
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 text-left">
                   <p className={`text-sm font-semibold ${item.text}`}>{item.label}</p>
-                  <p className="truncate text-[11px] text-gray-400">{item.description}</p>
+                  <p className="truncate text-xs text-gray-400">{item.description}</p>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
           <div className="border-t border-gray-100 px-3 py-3">
@@ -476,9 +476,9 @@ function WorkflowBuilderInner() {
             }}
             deleteKeyCode={null}
           >
-            <Background gap={20} color="#e5e7eb" />
+            <Background gap={24} color="#e5e7eb" size={1.5} />
             <Controls />
-            <MiniMap nodeStrokeWidth={3} zoomable pannable />
+            <MiniMap nodeStrokeWidth={3} zoomable pannable className="!rounded-xl !border-gray-200" />
             {nodes.length === 0 && (
               <Panel position="top-center">
                 <div className="mt-20 flex flex-col items-center gap-2 text-center text-gray-400 select-none pointer-events-none">
@@ -493,7 +493,7 @@ function WorkflowBuilderInner() {
 
         {/* Right config panel */}
         {selectedNode && (
-          <aside className="flex w-72 shrink-0 flex-col overflow-hidden border-l border-gray-200 bg-white shadow-lg">
+          <aside className="flex w-80 shrink-0 flex-col overflow-hidden border-l border-gray-200 bg-white shadow-lg">
             <NodeConfigPanel
               node={selectedNode as unknown as { id: string; type: string; data: { label: string; config?: Record<string, unknown> } }}
               workflowId={workflowId}
@@ -513,7 +513,20 @@ function WorkflowBuilderInner() {
         )}
       </div>
 
-      {/* AI Generate Modal */}
+      {/* Floating AI Assistant button + panel */}
+      {!showAiModal && (
+        <button
+          onClick={() => setShowAiModal(true)}
+          className="fixed bottom-6 right-6 z-50 group flex items-center gap-2 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 px-4 py-3 text-white shadow-lg shadow-purple-200 hover:shadow-xl hover:shadow-purple-300 hover:scale-105 active:scale-95 transition-all duration-200"
+          title="Open AI Workflow Assistant"
+        >
+          <span className="relative flex h-5 w-5 shrink-0">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-25" />
+            <Sparkles className="relative h-5 w-5" />
+          </span>
+          <span className="text-sm font-semibold tracking-tight">AI Assistant</span>
+        </button>
+      )}
       {showAiModal && (
         <AiGeneratorModal
           onGenerate={handleAiGenerate}
