@@ -18,6 +18,7 @@ interface CallRecord {
   summary?: string;
   createdAt: string;
   leadId?: { name?: string; phone?: string; email?: string };
+  metadata?: { isFollowUp?: boolean; assistantId?: string };
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -305,6 +306,7 @@ export default function CallsDashboard() {
               <tr className="border-b border-gray-100 bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                 <th className="px-5 py-3">Lead</th>
                 <th className="px-5 py-3">Phone</th>
+                <th className="px-5 py-3">Type</th>
                 <th className="px-5 py-3">Status</th>
                 <th className="px-5 py-3">Entries</th>
                 <th className="px-5 py-3">Date</th>
@@ -319,6 +321,17 @@ export default function CallsDashboard() {
                   </td>
                   <td className="px-5 py-3.5 text-gray-600 font-mono text-xs">
                     {rec.phoneNumber || rec.leadId?.phone || "—"}
+                  </td>
+                  <td className="px-5 py-3.5">
+                    {rec.metadata?.isFollowUp ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-semibold text-violet-700">
+                        ↻ Follow-up
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 px-2.5 py-0.5 text-xs font-medium text-sky-600">
+                        Initial
+                      </span>
+                    )}
                   </td>
                   <td className="px-5 py-3.5">
                     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${STATUS_COLORS[rec.status] || "bg-gray-100 text-gray-600"}`}>

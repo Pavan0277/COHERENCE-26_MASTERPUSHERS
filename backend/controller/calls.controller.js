@@ -100,26 +100,46 @@ export const followUpCall = asyncHandler(async (req, res) => {
     // Get user's VAPI settings
     const settings  = await UserSettings.findOne({ userId: req.user._id }).lean().catch(() => null);
     const vapiCreds = settings?.vapi || {};
-    const vapiApiKey    = vapiCreds.apiKey    || null;
-    const resolvedAssistant  = assistantId   || vapiCreds.assistantId   || null;
+    const vapiApiKey = vapiCreds.apiKey || null;
+
+    // Follow-up always routes to Alex2: env var > node override > DB fallback > initial assistant
+    const resolvedAssistant  = assistantId
+        || process.env.VAPI_FOLLOWUP_ASSISTANT_ID
+        || vapiCreds.followUpAssistantId
+        || vapiCreds.assistantId
+        || null;
     const resolvedPhoneNumId = phoneNumberId || vapiCreds.phoneNumberId || null;
+
+    // Build lead context for variable substitution ({{customerName}} etc.)
+    const lead = original.leadId || {};
+    const leadContext = {
+        name:         lead.name    || "",
+        company:      lead.company || "",
+        email:        lead.email   || "",
+        systemPrompt: vapiCreds.followUpSystemPrompt || undefined,
+        firstMessage: vapiCreds.followUpFirstMessage || undefined,
+    };
+
+    console.log(`[FollowUp] Using assistant: ${resolvedAssistant} (Alex2 via follow-up route)`);
 
     // Place the call
     const { callId: newCallId, vapiId } = await createOutboundCall(
         phone,
         resolvedAssistant,
         resolvedPhoneNumId,
-        vapiApiKey
+        vapiApiKey,
+        leadContext
     );
 
-    // Create a DB record for the follow-up call
+    // Create a DB record — mark as follow-up so dashboard shows the badge
     const record = await createInitialTranscript(
         newCallId,
         vapiId,
         phone,
         req.user._id,
         original.workflowId,
-        original.leadId
+        original.leadId,
+        { isFollowUp: true, assistantId: resolvedAssistant || "" }
     );
 
     console.log(`[FollowUp] New call ${newCallId} placed to ${phone} (original: ${callId})`);

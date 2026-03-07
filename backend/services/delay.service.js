@@ -1,4 +1,4 @@
-import { workflowQueue } from "../queues/workflow.queue.js";
+import { getWorkflowQueue } from "../queues/workflow.queue.js";
 import { isRedisAvailable } from "../config/redis.js";
 
 /**
@@ -33,7 +33,7 @@ export async function scheduleDelayedStep(delayConfig, jobData) {
 
     const delay = randomDelay(min, max);
 
-    const job = await workflowQueue.add("executeNode", jobData, { delay });
+    const job = await getWorkflowQueue().add("executeNode", jobData, { delay });
 
     return {
         jobId: job.id,

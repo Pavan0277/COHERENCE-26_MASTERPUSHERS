@@ -28,13 +28,15 @@ interface TelegramConfig {
 interface VapiConfig {
   apiKey: string;
   assistantId: string;
+  followUpFirstMessage: string;
+  followUpSystemPrompt: string;
   phoneNumberId: string;
 }
 
 const DEFAULT_EMAIL: EmailConfig = { host: "smtp.gmail.com", port: 587, secure: false, user: "", pass: "", from: "" };
 const DEFAULT_SLACK: SlackConfig = { webhookUrl: "" };
 const DEFAULT_TELEGRAM: TelegramConfig = { botToken: "", chatId: "", apiId: 0, apiHash: "", sessionString: "" };
-const DEFAULT_VAPI: VapiConfig = { apiKey: "", assistantId: "", phoneNumberId: "" };
+const DEFAULT_VAPI: VapiConfig = { apiKey: "", assistantId: "", followUpFirstMessage: "", followUpSystemPrompt: "", phoneNumberId: "" };
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState<Tab>("email");
@@ -403,6 +405,45 @@ export default function Settings() {
                 />
                 <p className="mt-1 text-[11px] text-gray-400">
                   VAPI dashboard → Assistants → copy the ID.
+                </p>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-600">
+                  Follow-up Opening Line{" "}
+                  <span className="text-gray-400 font-normal">(first thing caller hears)</span>
+                </label>
+                <input
+                  type="text"
+                  value={vapi.followUpFirstMessage}
+                  onChange={(e) => setVapi({ ...vapi, followUpFirstMessage: e.target.value })}
+                  placeholder='e.g. "Hi {{customerName}}! This is Alex, I called you recently about our service — just following up!"'
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:border-violet-400 focus:outline-none"
+                />
+                <p className="mt-1 text-[11px] text-gray-400">
+                  Overrides the "Hello." first message on Alex2. Use{" "}
+                  <code className="rounded bg-gray-100 px-0.5">{"{{customerName}}"}</code> to
+                  personalise. Leave blank for a sensible default.
+                </p>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-600">
+                  Follow-up System Prompt{" "}
+                  <span className="text-gray-400 font-normal">(injected for follow-up calls)</span>
+                </label>
+                <textarea
+                  rows={8}
+                  value={vapi.followUpSystemPrompt}
+                  onChange={(e) => setVapi({ ...vapi, followUpSystemPrompt: e.target.value })}
+                  placeholder="Leave blank to use the default follow-up prompt. Use {{customerName}}, {{customerCompany}}, {{customerEmail}} as variables."
+                  className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-xs text-gray-800 placeholder-gray-400 focus:border-violet-400 focus:outline-none"
+                />
+                <p className="mt-1 text-[11px] text-gray-400">
+                  This prompt overrides Alex2's configured script for every follow-up call.
+                  Variables <code className="rounded bg-gray-100 px-0.5">{"{{customerName}}"}</code>,{" "}
+                  <code className="rounded bg-gray-100 px-0.5">{"{{customerCompany}}"}</code> are
+                  substituted with each lead's actual data.
                 </p>
               </div>
 

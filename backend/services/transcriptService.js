@@ -1,7 +1,7 @@
 import { CallTranscript } from "../models/CallTranscript.model.js";
 import { fetchCallFromVapi } from "./vapi.service.js";
 
-export async function createInitialTranscript(callId, vapiId, phoneNumber, userId, workflowId, leadId) {
+export async function createInitialTranscript(callId, vapiId, phoneNumber, userId, workflowId, leadId, options = {}) {
     return CallTranscript.create({
         callId,
         vapiId:      vapiId ? String(vapiId) : undefined,
@@ -11,6 +11,7 @@ export async function createInitialTranscript(callId, vapiId, phoneNumber, userI
         leadId,
         status:      "initiated",
         transcript:  [],
+        metadata:    options,   // stores { isFollowUp, assistantId } when provided
     });
 }
 

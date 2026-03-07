@@ -50,6 +50,8 @@ services:
         sync: false
       - key: VAPI_PHONE_NUMBER_ID
         sync: false
+      - key: VAPI_FOLLOWUP_ASSISTANT_ID
+        value: "38d3f51c-f007-421b-9e2d-9e899f53ad83"
 
       # ── Twilio ───────────────────────────────────────────────────────────────
       - key: TWILIO_ACCOUNT_SID

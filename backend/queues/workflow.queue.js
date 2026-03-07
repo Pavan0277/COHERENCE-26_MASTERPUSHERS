@@ -1,4 +1,14 @@
 import { Queue } from "bullmq";
 import { connection } from "../config/redis.js";
 
-export const workflowQueue = new Queue("workflow", { connection });
+let _workflowQueue = null;
+
+export function getWorkflowQueue() {
+    if (!_workflowQueue) {
+        _workflowQueue = new Queue("workflow", { connection });
+    }
+    return _workflowQueue;
+}
+
+// Keep named export for backward compatibility (lazy getter)
+export const workflowQueue = { add: (...args) => getWorkflowQueue().add(...args) };

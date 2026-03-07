@@ -25,9 +25,10 @@ function getApiKey(override) {
  * @param {string|null} assistantId
  * @param {string|null} phoneNumberId
  * @param {string|null} apiKeyOverride  - per-user API key from UserSettings (overrides env)
+ * @param {object} leadContext          - optional lead fields forwarded as variableValues to the assistant
  * @returns {Promise<{ callId: string, vapiId: string }>}
  */
-export async function createOutboundCall(toNumber, assistantId = null, phoneNumberId = null, apiKeyOverride = null) {
+export async function createOutboundCall(toNumber, assistantId = null, phoneNumberId = null, apiKeyOverride = null, leadContext = {}) {
     const apiKey     = getApiKey(apiKeyOverride);
     const assistant  = assistantId   || process.env.VAPI_ASSISTANT_ID;
     const phoneNumId = phoneNumberId || process.env.VAPI_PHONE_NUMBER_ID;
@@ -37,24 +38,47 @@ export async function createOutboundCall(toNumber, assistantId = null, phoneNumb
 
     const normalizedNumber = normalizePhoneNumber(toNumber);
 
-    // Build the webhook URL so VAPI knows where to POST events.
-    // BACKEND_URL must be set to the publicly reachable URL of this server
-    // (e.g. your ngrok URL or deployed domain). Falls back to SERVER_URL.
     const backendUrl = (process.env.BACKEND_URL || process.env.SERVER_URL || "").replace(/\/+$/, "");
     const webhookUrl = backendUrl ? `${backendUrl}/api/calls/webhook/vapi` : undefined;
+
+    // Build variableValues from lead context so the assistant can say the lead's name, company etc.
+    const variableValues = {};
+    if (leadContext.name)    variableValues.customerName    = leadContext.name;
+    if (leadContext.company) variableValues.customerCompany = leadContext.company;
+    if (leadContext.email)   variableValues.customerEmail   = leadContext.email;
+    const hasVariables = Object.keys(variableValues).length > 0;
 
     const body = {
         assistantId:   assistant,
         phoneNumberId: phoneNumId,
         customer:      { number: normalizedNumber },
-        ...(webhookUrl && {
-            assistantOverrides: {
-                server: { url: webhookUrl },
-            },
-        }),
+        assistantOverrides: {
+            ...(webhookUrl && { server: { url: webhookUrl } }),
+            ...(hasVariables && { variableValues }),
+        },
     };
 
-    console.log("[VAPI] Initiating call to:", normalizedNumber);
+    // Override system prompt for follow-up calls: substitute {{customerName}} etc. before sending
+    if (leadContext.systemPrompt) {
+        const substituted = leadContext.systemPrompt
+            .replace(/\{\{customerName\}\}/g,    variableValues.customerName    || "there")
+            .replace(/\{\{customerCompany\}\}/g, variableValues.customerCompany || "")
+            .replace(/\{\{customerEmail\}\}/g,   variableValues.customerEmail   || "");
+        body.assistantOverrides.model = {
+            messages: [{ role: "system", content: substituted }],
+        };
+    }
+
+    // Override first message — this is the very first thing the caller hears
+    if (leadContext.firstMessage) {
+        const substitutedFirst = leadContext.firstMessage
+            .replace(/\{\{customerName\}\}/g,    variableValues.customerName    || "there")
+            .replace(/\{\{customerCompany\}\}/g, variableValues.customerCompany || "")
+            .replace(/\{\{customerEmail\}\}/g,   variableValues.customerEmail   || "");
+        body.assistantOverrides.firstMessage = substitutedFirst;
+    }
+
+    console.log("[VAPI] Initiating call to:", normalizedNumber, "| assistant:", assistant);
 
     const response = await fetch(`${VAPI_API_BASE}/call`, {
         method: "POST",

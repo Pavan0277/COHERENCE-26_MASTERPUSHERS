@@ -12,6 +12,9 @@ const connection = new IORedis(redisUrl, {
     },
 });
 
+// Suppress unhandled error events when Redis is unavailable
+connection.on("error", () => {});
+
 /** Check if Redis is available using a temporary connection (avoids polluting main connection) */
 export async function isRedisAvailable() {
     const testConn = new IORedis(redisUrl, {

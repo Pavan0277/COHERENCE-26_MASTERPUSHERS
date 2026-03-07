@@ -145,17 +145,51 @@ async function executeNode(node, lead, context) {
             if (!phone) {
                 return { continue: true, message: "Lead has no phone number — call skipped" };
             }
-            const assistantId  = config.assistantId  || context.vapiSettings?.assistantId  || null;
-            const phoneNumId   = config.phoneNumberId || context.vapiSettings?.phoneNumberId || null;
-            const vapiApiKey   = context.vapiSettings?.apiKey || null;
-            const { callId, vapiId } = await createOutboundCall(phone, assistantId, phoneNumId, vapiApiKey);
+
+            const isFollowUp = config.followUp === true;
+
+            // Pick the right assistant:
+            //   follow-up → env VAPI_FOLLOWUP_ASSISTANT_ID > node override > Settings DB fallback
+            //   initial   → node override > Settings DB assistantId
+            const assistantId = config.assistantId || (
+                isFollowUp
+                    ? (process.env.VAPI_FOLLOWUP_ASSISTANT_ID || context.vapiSettings?.followUpAssistantId || context.vapiSettings?.assistantId)
+                    : context.vapiSettings?.assistantId
+            ) || null;
+
+            const phoneNumId = config.phoneNumberId || context.vapiSettings?.phoneNumberId || null;
+            const vapiApiKey = context.vapiSettings?.apiKey || null;
+
+            // Pass lead context so Alex/Alex2 can personalise ("Hi {{customerName}}")
+            // For follow-up calls, also inject the follow-up system prompt so the
+            // assistant delivers the follow-up script instead of the initial-call script.
+            const followUpSystemPrompt = isFollowUp
+                ? (context.vapiSettings?.followUpSystemPrompt || null)
+                : null;
+
+            const followUpFirstMessage = isFollowUp
+                ? (context.vapiSettings?.followUpFirstMessage || "Hi {{customerName}}! This is Alex. I called you recently about our service — just wanted to follow up and see if you had any questions.")
+                : null;
+
+            const leadContext = {
+                name:    lead.name    || "",
+                company: lead.company || "",
+                email:   lead.email   || "",
+                ...(followUpSystemPrompt  ? { systemPrompt:  followUpSystemPrompt  } : {}),
+                ...(followUpFirstMessage  ? { firstMessage:  followUpFirstMessage  } : {}),
+            };
+
+            console.log(`[Engine] ${isFollowUp ? "Follow-up" : "Initial"} call for lead ${lead._id} using assistant: ${assistantId}`);
+
+            const { callId, vapiId } = await createOutboundCall(phone, assistantId, phoneNumId, vapiApiKey, leadContext);
             await createInitialTranscript(
                 callId,
                 vapiId,
                 phone,
                 context.userId,
                 context.workflowId,
-                lead._id
+                lead._id,
+                { isFollowUp, assistantId: assistantId || "" }   // stored in metadata for dashboard
             );
             console.log(`[Engine] Call initiated for lead ${lead._id}: callId=${callId}`);
             return { continue: true, message: `Call initiated: ${callId}` };
