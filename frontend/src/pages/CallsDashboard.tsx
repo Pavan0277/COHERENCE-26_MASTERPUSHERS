@@ -159,11 +159,10 @@ export default function CallsDashboard() {
       )}
 
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between">
         <div>
-          <div className="mb-1 h-1 w-10 rounded-full bg-gradient-to-r from-sky-500 to-sky-300" />
-          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Calls Dashboard</h1>
-          <p className="mt-1 text-sm font-medium text-gray-400">
+          <h1 className="text-2xl font-bold text-gray-900">Calls Dashboard</h1>
+          <p className="mt-0.5 text-sm text-gray-500">
             All outbound VAPI calls and their transcripts
           </p>
         </div>

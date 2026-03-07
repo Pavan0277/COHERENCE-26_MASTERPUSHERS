@@ -54,10 +54,7 @@ export default function Profile() {
   if (!user) {
     return (
       <div className="space-y-6">
-        <div>
-          <div className="mb-1 h-1 w-10 rounded-full bg-gradient-to-r from-brand-500 to-brand-300" />
-          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Profile</h1>
-        </div>
+        <h1 className="text-2xl font-bold text-heading">Profile</h1>
         <div className="rounded-xl border border-gray-200 bg-gray-100 p-8 shadow-card">
           <p className="text-body">No profile data found. Please log in again.</p>
           <Link
@@ -76,9 +73,8 @@ export default function Profile() {
   return (
     <div className="space-y-6">
       <div>
-        <div className="mb-1 h-1 w-10 rounded-full bg-gradient-to-r from-brand-500 to-brand-300" />
-        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Profile</h1>
-        <p className="mt-1 text-sm font-medium text-gray-400">Your account information</p>
+        <h1 className="text-2xl font-bold text-heading">Profile</h1>
+        <p className="text-sm text-body-light">Your account information</p>
       </div>
 
       {/* Profile Card */}

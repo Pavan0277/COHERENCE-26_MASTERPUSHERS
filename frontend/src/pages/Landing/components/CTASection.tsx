@@ -1,38 +1,61 @@
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import AnimatedSection from '../../../components/AnimatedSection';
 
 export default function CTASection() {
   return (
-    <section id="cta" className="py-24 md:py-36 bg-[#FAFBFC] relative overflow-hidden">
-      {/* Decorative stars — subtle like n8n */}
-      <div className="absolute inset-0 pointer-events-none select-none" aria-hidden>
-        <svg className="absolute top-10 left-[15%] w-5 h-5 text-brand-200" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l2.09 6.26L20.18 9l-5.09 3.74L17.18 19 12 15.27 6.82 19l2.09-6.26L3.82 9l6.09-.74z" /></svg>
-        <svg className="absolute bottom-16 right-[20%] w-4 h-4 text-brand-200" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l2.09 6.26L20.18 9l-5.09 3.74L17.18 19 12 15.27 6.82 19l2.09-6.26L3.82 9l6.09-.74z" /></svg>
-        <svg className="absolute top-1/2 left-[8%] w-3 h-3 text-brand-100" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l2.09 6.26L20.18 9l-5.09 3.74L17.18 19 12 15.27 6.82 19l2.09-6.26L3.82 9l6.09-.74z" /></svg>
-      </div>
+    <section id="cta" className="section-padding bg-white relative overflow-hidden">
+      {/* Decorative blobs */}
+      <div className="absolute top-0 left-1/4 w-72 h-72 bg-brand-100/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-violet-100/20 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="max-w-[1200px] mx-auto px-5 relative">
+      <div className="section-container relative z-10">
         <AnimatedSection>
-          <div className="text-center max-w-[700px] mx-auto">
-            <h2 className="text-[36px] sm:text-[52px] md:text-[64px] font-bold text-gray-900 leading-[1.05] tracking-[-0.03em]">
-              There&apos;s nothing you can&apos;t close.
-            </h2>
-            <p className="mt-5 text-[16px] text-gray-500 leading-[1.6] max-w-[460px] mx-auto">
-              Start for free. No credit card. Scale when you&apos;re ready.
-            </p>
-            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Link
-                to="/register"
-                className="text-[15px] font-semibold text-white bg-brand-600 hover:bg-brand-700 px-8 py-3.5 rounded-lg transition-colors w-full sm:w-auto text-center"
+          <div className="relative bg-gradient-to-br from-brand-600 via-brand-700 to-brand-900 rounded-3xl p-10 md:p-16 lg:p-20 text-center overflow-hidden">
+            {/* Inner decorative */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/3" />
+
+            <div className="relative z-10">
+              <motion.div
+                initial={{ scale: 0 }}
+                whileInView={{ scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
+                className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur flex items-center justify-center mx-auto mb-6"
               >
-                Get started for free
-              </Link>
-              <Link
-                to="#newsletter"
-                className="text-[15px] font-medium text-gray-700 border border-gray-300 hover:border-gray-400 hover:bg-gray-50 px-8 py-3.5 rounded-lg transition-colors w-full sm:w-auto text-center"
-              >
-                Talk to sales
-              </Link>
+                <Sparkles size={24} className="text-white" />
+              </motion.div>
+
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white leading-tight max-w-xl mx-auto">
+                Ready to start growing?
+              </h2>
+
+              <p className="mt-4 text-brand-100 text-lg leading-relaxed max-w-md mx-auto">
+                Join thousands of teams already using Velo to capture more leads
+                and close more deals.
+              </p>
+
+              <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+                <Link
+                  to="/register"
+                  className="inline-flex items-center justify-center px-10 py-4 bg-white text-brand-700 font-bold rounded-xl hover:bg-brand-50 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 text-sm tracking-wide group"
+                >
+                  Get Started Free
+                  <ArrowRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <Link
+                  to="/login"
+                  className="inline-flex items-center justify-center px-10 py-4 border-2 border-white/30 text-white font-semibold rounded-xl hover:bg-white/10 transition-all duration-300 text-sm tracking-wide"
+                >
+                  Sign In
+                </Link>
+              </div>
+
+              <p className="mt-6 text-brand-200 text-xs">
+                No credit card required · 14-day free trial · Cancel anytime
+              </p>
             </div>
           </div>
         </AnimatedSection>

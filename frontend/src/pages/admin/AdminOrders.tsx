@@ -37,9 +37,8 @@ export default function AdminOrders() {
   return (
     <div className="space-y-6">
       <div>
-        <div className="mb-1 h-1 w-10 rounded-full bg-gradient-to-r from-brand-500 to-brand-300" />
-        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Orders</h1>
-        <p className="mt-1 text-sm font-medium text-gray-400">Manage and track all orders</p>
+        <h1 className="text-2xl font-bold text-heading">Orders</h1>
+        <p className="text-sm text-body-light">Manage and track all orders</p>
       </div>
 
       {/* Summary */}

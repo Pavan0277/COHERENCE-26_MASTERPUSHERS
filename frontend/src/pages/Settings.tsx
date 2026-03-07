@@ -98,10 +98,9 @@ export default function Settings() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
-      <div className="mb-8">
-        <div className="mb-1 h-1 w-10 rounded-full bg-gradient-to-r from-brand-500 to-brand-300" />
-        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">Messaging Settings</h1>
-        <p className="mt-1 text-sm font-medium text-gray-400">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Messaging Settings</h1>
+        <p className="mt-1 text-sm text-gray-500">
           Configure the credentials used when your workflows send messages to leads.
         </p>
       </div>

@@ -60,12 +60,11 @@ export default function ForgotPassword() {
   return (
     <AuthLayout illustration={<RecoverIllustration />} pageLabel="Recover">
       <div className="w-full max-w-xl">
-        <div className="mb-1 h-1 w-10 rounded-full bg-gradient-to-r from-brand-500 to-brand-300" />
-        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 leading-[1.15] mb-2">
+        <h1 className="text-4xl font-bold text-gray-900 leading-tight mb-3">
           Lost your password?<br />
-          Enter your details to <span className="bg-gradient-to-r from-brand-600 to-brand-400 bg-clip-text text-transparent">recover</span>.
+          Enter your details to recover.
         </h1>
-        <p className="text-sm font-medium text-gray-400 mb-9">Enter your details to proceed further</p>
+        <p className="text-sm text-gray-400 mb-9">Enter your details to proceed further</p>
 
         {error && (
           <div
