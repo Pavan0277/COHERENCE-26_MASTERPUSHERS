@@ -104,10 +104,10 @@ export default function Dashboard() {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-heading">
+          <h1 className="text-3xl font-bold text-heading">
             {getUserName() ? `Welcome back, ${getUserName()}!` : "Dashboard"}
           </h1>
-          <p className="text-sm text-body-light">Here's what's happening today.</p>
+          <p className="text-base text-body-light">Here's what's happening today.</p>
         </div>
         <div className="flex items-center gap-3">
           {/* Channel Selector */}
@@ -154,15 +154,15 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {dynamicStats.map((stat) => (
           <div
             key={stat.label}
-            className="group rounded-xl border border-gray-200 bg-gray-100 p-5 shadow-card transition-all duration-300 hover:shadow-card-hover"
+            className="group rounded-xl border border-gray-200 bg-gray-100 p-6 shadow-card transition-all duration-300 hover:shadow-card-hover"
           >
             <div className="flex items-center justify-between">
-              <div className={`rounded-lg p-2.5 ${stat.color}`}>
-                <stat.icon className="h-5 w-5" />
+              <div className={`rounded-lg p-3 ${stat.color}`}>
+                <stat.icon className="h-6 w-6" />
               </div>
               {stat.change ? (
                 <span className={`flex items-center gap-0.5 text-xs font-semibold ${
@@ -175,27 +175,27 @@ export default function Dashboard() {
                 <span className="text-[10px] font-medium text-body-light">live</span>
               )}
             </div>
-            <p className="mt-3 text-2xl font-bold text-heading">{stat.value}</p>
+            <p className="mt-4 text-3xl font-bold text-heading">{stat.value}</p>
             <p className="text-sm text-body-light">{stat.label}</p>
           </div>
         ))}
       </div>
 
       {/* Charts Row */}
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3">
         {/* Sends Over Time Chart */}
-        <div className="rounded-xl border border-gray-200 bg-gray-100 p-5 shadow-card lg:col-span-2">
-          <div className="mb-4 flex items-center justify-between">
+        <div className="rounded-xl border border-gray-200 bg-gray-100 p-6 shadow-card lg:col-span-2">
+          <div className="mb-5 flex items-center justify-between">
             <div>
-              <h2 className="text-base font-semibold text-heading">Sends Over Time</h2>
-              <p className="text-xs text-body-light">Messages sent per day (last 20 sends)</p>
+              <h2 className="text-lg font-semibold text-heading">Sends Over Time</h2>
+              <p className="text-sm text-body-light">Messages sent per day (last 20 sends)</p>
             </div>
             <button className="rounded-lg p-1.5 text-body-light transition hover:bg-surface-subtle hover:text-body">
               <MoreHorizontal className="h-4 w-4" />
             </button>
           </div>
           {sendsPerDay.length > 0 ? (
-            <ResponsiveContainer width="100%" height={280}>
+            <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={sendsPerDay}>
                 <defs>
                   <linearGradient id="sendsGrad" x1="0" y1="0" x2="0" y2="1">
@@ -218,17 +218,17 @@ export default function Dashboard() {
         </div>
 
         {/* By Platform Chart */}
-        <div className="rounded-xl border border-gray-200 bg-gray-100 p-5 shadow-card">
-          <div className="mb-4 flex items-center justify-between">
+        <div className="rounded-xl border border-gray-200 bg-gray-100 p-6 shadow-card">
+          <div className="mb-5 flex items-center justify-between">
             <div>
-              <h2 className="text-base font-semibold text-heading">By Platform</h2>
-              <p className="text-xs text-body-light">Sent vs failed per channel</p>
+              <h2 className="text-lg font-semibold text-heading">By Platform</h2>
+              <p className="text-sm text-body-light">Sent vs failed per channel</p>
             </div>
             <div className="rounded-lg bg-brand-50 p-1.5 text-brand-600">
               <BarChart3 className="h-4 w-4" />
             </div>
           </div>
-          <ResponsiveContainer width="100%" height={280}>
+          <ResponsiveContainer width="100%" height={300}>
             <BarChart data={platformChartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F3F4F6" />
               <XAxis dataKey="name" tick={{ fontSize: 12, fill: "#9CA3AF" }} axisLine={false} tickLine={false} />
@@ -242,13 +242,13 @@ export default function Dashboard() {
       </div>
 
       {/* Bottom Row */}
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3">
         {/* Recent Workflows */}
         <div className="rounded-xl border border-gray-200 bg-gray-100 shadow-card lg:col-span-2">
-          <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+          <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
             <div className="flex items-center gap-2">
-              <GitBranch className="h-4 w-4 text-brand-600" />
-              <h2 className="text-base font-semibold text-heading">Recent Workflows</h2>
+              <GitBranch className="h-5 w-5 text-brand-600" />
+              <h2 className="text-lg font-semibold text-heading">Recent Workflows</h2>
             </div>
             <div className="flex items-center gap-3">
               <a href="/workflows" className="text-xs font-medium text-body-light transition hover:text-brand-600">
@@ -268,10 +268,10 @@ export default function Dashboard() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-50 text-left text-xs font-medium uppercase tracking-wider text-body-light">
-                    <th className="px-5 py-3">Workflow</th>
-                    <th className="px-5 py-3">Nodes</th>
-                    <th className="px-5 py-3">Edges</th>
-                    <th className="px-5 py-3">Created</th>
+                    <th className="px-6 py-3.5">Workflow</th>
+                    <th className="px-6 py-3.5">Nodes</th>
+                    <th className="px-6 py-3.5">Edges</th>
+                    <th className="px-6 py-3.5">Created</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -281,10 +281,10 @@ export default function Dashboard() {
                       className="cursor-pointer transition-colors hover:bg-brand-50/40"
                       onClick={() => window.location.href = `/workflows/${wf._id}`}
                     >
-                      <td className="whitespace-nowrap px-5 py-3 font-medium text-heading">{wf.name}</td>
-                      <td className="whitespace-nowrap px-5 py-3 text-body">{(wf.nodes as unknown[]).length} nodes</td>
-                      <td className="whitespace-nowrap px-5 py-3 text-body">{(wf.edges as unknown[]).length} edges</td>
-                      <td className="whitespace-nowrap px-5 py-3 text-body-light">
+                      <td className="whitespace-nowrap px-6 py-4 font-medium text-heading">{wf.name}</td>
+                      <td className="whitespace-nowrap px-6 py-4 text-body">{(wf.nodes as unknown[]).length} nodes</td>
+                      <td className="whitespace-nowrap px-6 py-4 text-body">{(wf.edges as unknown[]).length} edges</td>
+                      <td className="whitespace-nowrap px-6 py-4 text-body-light">
                         {new Date(wf.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                       </td>
                     </tr>
@@ -297,10 +297,10 @@ export default function Dashboard() {
 
         {/* Recent Outreach Leads */}
         <div className="rounded-xl border border-gray-200 bg-gray-100 shadow-card">
-          <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+          <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
             <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-brand-600" />
-              <h2 className="text-base font-semibold text-heading">Recent Leads Reached</h2>
+              <Users className="h-5 w-5 text-brand-600" />
+              <h2 className="text-lg font-semibold text-heading">Recent Leads Reached</h2>
             </div>
           </div>
           <div className="divide-y divide-gray-50 px-5">
@@ -310,15 +310,15 @@ export default function Dashboard() {
               </p>
             ) : (
               analytics.recentLogs.slice(0, 5).map((log, i) => (
-                <div key={i} className="flex items-center gap-3 py-3.5">
-                  <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${
+                  <div key={i} className="flex items-center gap-3 py-4">
+                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${
                     log.platform === "email" ? "bg-blue-500" : log.platform === "slack" ? "bg-pink-500" : "bg-sky-500"
                   }`}>
                     {(log.leadName || "?").slice(0, 2).toUpperCase()}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-heading">{log.leadName || "Unknown"}</p>
-                    <p className="truncate text-xs text-body-light capitalize">{log.platform}</p>
+                    <p className="truncate text-base font-medium text-heading">{log.leadName || "Unknown"}</p>
+                    <p className="truncate text-sm text-body-light capitalize">{log.platform}</p>
                   </div>
                   <span className={`shrink-0 inline-flex items-center gap-1 text-xs font-medium ${
                     log.status === "sent" ? "text-emerald-600" : log.status === "replied" ? "text-brand-600" : "text-red-500"
@@ -342,14 +342,14 @@ export default function Dashboard() {
       </div>
 
       {/* ── Outreach Analytics ───────────────────────────────── */}
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3">
 
         {/* Recent send activity */}
         <div className="rounded-xl border border-gray-200 bg-gray-100 shadow-card lg:col-span-2">
-          <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+          <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
             <div className="flex items-center gap-2">
-              <Inbox className="h-4 w-4 text-brand-600" />
-              <h2 className="text-base font-semibold text-heading">Outreach Activity</h2>
+              <Inbox className="h-5 w-5 text-brand-600" />
+              <h2 className="text-lg font-semibold text-heading">Outreach Activity</h2>
             </div>
             <span className="text-xs text-body-light">Last 20 sends</span>
           </div>

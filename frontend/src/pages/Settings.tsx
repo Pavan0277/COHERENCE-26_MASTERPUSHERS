@@ -99,10 +99,10 @@ export default function Settings() {
   ];
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-3xl">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-heading">Settings</h1>
-        <p className="mt-1 text-sm text-body-light">
+        <h1 className="text-3xl font-bold text-heading">Settings</h1>
+        <p className="mt-1 text-base text-body-light">
           Configure credentials for messaging, calls, and integrations.
         </p>
       </div>
@@ -113,13 +113,13 @@ export default function Settings() {
           <button
             key={id}
             onClick={() => setActiveTab(id)}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium transition-all duration-150 ${
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-3 text-base font-medium transition-all duration-150 ${
               activeTab === id
                 ? "bg-indigo-600 shadow-sm text-white"
                 : "text-gray-500 hover:text-gray-800 hover:bg-gray-50"
             }`}
           >
-            <Icon className="h-4 w-4" />
+            <Icon className="h-5 w-5" />
             {label}
           </button>
         ))}
@@ -137,35 +137,35 @@ export default function Settings() {
           {/* ── EMAIL ── */}
           {activeTab === "email" && (
             <div className="space-y-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+              <p className="text-sm font-semibold uppercase tracking-wide text-gray-400">
                 SMTP Configuration
               </p>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2 sm:col-span-1">
-                  <label className="mb-1 block text-xs font-medium text-gray-600">SMTP Host</label>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-600">SMTP Host</label>
                   <input
                     type="text"
                     value={email.host}
                     onChange={(e) => setEmail({ ...email, host: e.target.value })}
                     placeholder="smtp.gmail.com"
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-400 focus:outline-none"
+                    className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-blue-400 focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-600">Port</label>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-600">Port</label>
                   <input
                     type="number"
                     value={email.port}
                     onChange={(e) => setEmail({ ...email, port: Number(e.target.value) })}
                     placeholder="587"
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-400 focus:outline-none"
+                    className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-blue-400 focus:outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-600">
+                <label className="mb-1.5 block text-sm font-medium text-gray-600">
                   From / Sender Address
                 </label>
                 <input
@@ -173,12 +173,12 @@ export default function Settings() {
                   value={email.from}
                   onChange={(e) => setEmail({ ...email, from: e.target.value })}
                   placeholder="you@gmail.com"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-400 focus:outline-none"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-blue-400 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-600">
+                <label className="mb-1.5 block text-sm font-medium text-gray-600">
                   SMTP Username
                 </label>
                 <input
@@ -186,12 +186,12 @@ export default function Settings() {
                   value={email.user}
                   onChange={(e) => setEmail({ ...email, user: e.target.value })}
                   placeholder="you@gmail.com"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-400 focus:outline-none"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-blue-400 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-600">
+                <label className="mb-1.5 block text-sm font-medium text-gray-600">
                   App Password / SMTP Password
                 </label>
                 <div className="relative">
@@ -200,7 +200,7 @@ export default function Settings() {
                     value={email.pass}
                     onChange={(e) => setEmail({ ...email, pass: e.target.value })}
                     placeholder="Leave blank to keep existing password"
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 pr-10 text-sm focus:border-blue-400 focus:outline-none"
+                    className="w-full rounded-lg border border-gray-200 px-4 py-2.5 pr-11 text-sm focus:border-blue-400 focus:outline-none"
                   />
                   <button
                     type="button"
@@ -242,11 +242,11 @@ export default function Settings() {
           {/* ── SLACK ── */}
           {activeTab === "slack" && (
             <div className="space-y-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+              <p className="text-sm font-semibold uppercase tracking-wide text-gray-400">
                 Slack Incoming Webhook
               </p>
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-600">
+                <label className="mb-1.5 block text-sm font-medium text-gray-600">
                   Webhook URL
                 </label>
                 <input
@@ -254,7 +254,7 @@ export default function Settings() {
                   value={slack.webhookUrl}
                   onChange={(e) => setSlack({ webhookUrl: e.target.value })}
                   placeholder="https://hooks.slack.com/services/T…/B…/…"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-indigo-400 focus:outline-none"
                 />
                 <p className="mt-1 text-[11px] text-gray-400">
                   Create one at{" "}
@@ -279,7 +279,7 @@ export default function Settings() {
               {/* ── User API section (send by phone) ── */}
               <div className="rounded-xl border border-sky-100 bg-sky-50 p-4 space-y-3">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">User API — Send by Phone Number</p>
+                  <p className="text-sm font-semibold uppercase tracking-wide text-sky-700">User API — Send by Phone Number</p>
                   <p className="mt-0.5 text-[11px] text-sky-600">
                     Fill these to send messages directly to leads' phone numbers.{" "}
                     Run <code className="rounded bg-sky-100 px-1 font-mono text-[10px]">node scripts/gen-telegram-session.js</code>{" "}
@@ -289,35 +289,35 @@ export default function Settings() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-600">API ID</label>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-600">API ID</label>
                     <input
                       type="number"
                       value={telegram.apiId || ""}
                       onChange={(e) => setTelegram({ ...telegram, apiId: Number(e.target.value) })}
                       placeholder="12345678"
-                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-sky-400 focus:outline-none"
+                      className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-sky-400 focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block text-xs font-medium text-gray-600">API Hash</label>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-600">API Hash</label>
                     <input
                       type="text"
                       value={telegram.apiHash}
                       onChange={(e) => setTelegram({ ...telegram, apiHash: e.target.value })}
                       placeholder="a1b2c3d4e5f6…"
-                      className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-sky-400 focus:outline-none"
+                      className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-sky-400 focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-600">Session String</label>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-600">Session String</label>
                   <textarea
                     rows={3}
                     value={telegram.sessionString}
                     onChange={(e) => setTelegram({ ...telegram, sessionString: e.target.value })}
                     placeholder="Paste the output of gen-telegram-session.js here…"
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-xs focus:border-sky-400 focus:outline-none"
+                    className="w-full rounded-lg border border-gray-200 px-4 py-2.5 font-mono text-xs focus:border-sky-400 focus:outline-none"
                   />
                   <p className="mt-1 text-[11px] text-gray-400">
                     Get API ID &amp; Hash from{" "}
@@ -329,15 +329,15 @@ export default function Settings() {
 
               {/* ── Bot API section (fallback) ── */}
               <div className="space-y-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Bot API — Fallback (requires users to start the bot first)</p>
+                <p className="text-sm font-semibold uppercase tracking-wide text-gray-400">Bot API — Fallback (requires users to start the bot first)</p>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-600">Bot Token</label>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-600">Bot Token</label>
                   <input
                     type="text"
                     value={telegram.botToken}
                     onChange={(e) => setTelegram({ ...telegram, botToken: e.target.value })}
                     placeholder="123456789:AAAAAAAAAA…"
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-sky-400 focus:outline-none"
+                    className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-sky-400 focus:outline-none"
                   />
                   <p className="mt-1 text-[11px] text-gray-400">
                     Get a token from{" "}
@@ -345,13 +345,13 @@ export default function Settings() {
                   </p>
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-600">Fallback Chat ID</label>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-600">Fallback Chat ID</label>
                   <input
                     type="text"
                     value={telegram.chatId}
                     onChange={(e) => setTelegram({ ...telegram, chatId: e.target.value })}
                     placeholder="-1001234567890 or @yourchannel"
-                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-sky-400 focus:outline-none"
+                    className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-sky-400 focus:outline-none"
                   />
                   <p className="mt-1 text-[11px] text-gray-400">
                     Forward a message from the target chat to{" "}
@@ -376,7 +376,7 @@ export default function Settings() {
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-600">
+                <label className="mb-1.5 block text-sm font-medium text-gray-600">
                   API Key
                 </label>
                 <input
@@ -384,7 +384,7 @@ export default function Settings() {
                   value={vapi.apiKey}
                   onChange={(e) => setVapi({ ...vapi, apiKey: e.target.value })}
                   placeholder="Leave blank to keep existing key"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-sky-400 focus:outline-none"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:border-sky-400 focus:outline-none"
                 />
                 <p className="mt-1 text-[11px] text-gray-400">
                   Copy from{" "}
@@ -396,7 +396,7 @@ export default function Settings() {
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-600">
+                <label className="mb-1.5 block text-sm font-medium text-gray-600">
                   Assistant ID <span className="text-red-400">*</span>
                 </label>
                 <input
@@ -404,7 +404,7 @@ export default function Settings() {
                   value={vapi.assistantId}
                   onChange={(e) => setVapi({ ...vapi, assistantId: e.target.value })}
                   placeholder="e.g. asst_xxxxxxxxxxxxxxxx"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-mono focus:border-sky-400 focus:outline-none"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-mono focus:border-sky-400 focus:outline-none"
                 />
                 <p className="mt-1 text-[11px] text-gray-400">
                   VAPI dashboard → Assistants → copy the ID.
@@ -412,7 +412,7 @@ export default function Settings() {
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-600">
+                <label className="mb-1.5 block text-sm font-medium text-gray-600">
                   Follow-up Opening Line{" "}
                   <span className="text-gray-400 font-normal">(first thing caller hears)</span>
                 </label>
@@ -421,7 +421,7 @@ export default function Settings() {
                   value={vapi.followUpFirstMessage}
                   onChange={(e) => setVapi({ ...vapi, followUpFirstMessage: e.target.value })}
                   placeholder='e.g. "Hi {{customerName}}! This is Alex, I called you recently about our service — just following up!"'
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:border-violet-400 focus:outline-none"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:border-violet-400 focus:outline-none"
                 />
                 <p className="mt-1 text-[11px] text-gray-400">
                   Overrides the "Hello." first message on Alex2. Use{" "}
@@ -431,7 +431,7 @@ export default function Settings() {
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-600">
+                <label className="mb-1.5 block text-sm font-medium text-gray-600">
                   Follow-up System Prompt{" "}
                   <span className="text-gray-400 font-normal">(injected for follow-up calls)</span>
                 </label>
@@ -440,7 +440,7 @@ export default function Settings() {
                   value={vapi.followUpSystemPrompt}
                   onChange={(e) => setVapi({ ...vapi, followUpSystemPrompt: e.target.value })}
                   placeholder="Leave blank to use the default follow-up prompt. Use {{customerName}}, {{customerCompany}}, {{customerEmail}} as variables."
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 font-mono text-xs text-gray-800 placeholder-gray-400 focus:border-violet-400 focus:outline-none"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2.5 font-mono text-xs text-gray-800 placeholder-gray-400 focus:border-violet-400 focus:outline-none"
                 />
                 <p className="mt-1 text-[11px] text-gray-400">
                   This prompt overrides Alex2's configured script for every follow-up call.
@@ -451,7 +451,7 @@ export default function Settings() {
               </div>
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-600">
+                <label className="mb-1.5 block text-sm font-medium text-gray-600">
                   Phone Number ID <span className="text-red-400">*</span>
                 </label>
                 <input
@@ -459,7 +459,7 @@ export default function Settings() {
                   value={vapi.phoneNumberId}
                   onChange={(e) => setVapi({ ...vapi, phoneNumberId: e.target.value })}
                   placeholder="e.g. pn_xxxxxxxxxxxxxxxx"
-                  className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm font-mono focus:border-sky-400 focus:outline-none"
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-mono focus:border-sky-400 focus:outline-none"
                 />
                 <p className="mt-1 text-[11px] text-gray-400">
                   VAPI dashboard → Phone Numbers → copy the ID.
@@ -480,7 +480,7 @@ export default function Settings() {
         <button
           onClick={handleSave}
           disabled={saving || loading}
-          className={`flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold text-white disabled:opacity-50 active:scale-95 transition-all duration-150 shadow-sm ${
+          className={`flex items-center gap-2 rounded-xl px-8 py-3 text-base font-semibold text-white disabled:opacity-50 active:scale-95 transition-all duration-150 shadow-sm ${
             saved ? "bg-emerald-600 hover:bg-emerald-700" : "bg-indigo-600 hover:bg-indigo-700"
           }`}
         >

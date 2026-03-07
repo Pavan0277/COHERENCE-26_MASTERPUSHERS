@@ -58,25 +58,25 @@ export default function Sidebar() {
   return (
     <aside
       className={`flex h-screen shrink-0 flex-col border-r border-gray-200 bg-white transition-all duration-300 ${
-        collapsed ? "w-[60px]" : "w-64"
+        collapsed ? "w-[60px]" : "w-72"
       }`}
     >
       {/* Logo row + collapse toggle */}
-      <div className="flex h-16 items-center border-b border-gray-200 px-3">
+      <div className="flex h-[72px] items-center border-b border-gray-200 px-4">
         {!collapsed && (
           <>
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-brand-700">
-              <span className="text-sm font-bold text-white">V</span>
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-brand-700">
+              <span className="text-base font-bold text-white">V</span>
             </div>
-            <span className="ml-2 text-lg font-bold tracking-tight text-heading">Velo</span>
+            <span className="ml-2 text-xl font-bold tracking-tight text-heading">Velo</span>
             <span className="ml-auto truncate max-w-[80px] rounded-md bg-brand-50 px-2 py-0.5 text-[10px] font-semibold text-brand-600">
               {getUserName()}
             </span>
           </>
         )}
         {collapsed && (
-          <div className="mx-auto flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-brand-700">
-            <span className="text-sm font-bold text-white">V</span>
+          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-brand-500 to-brand-700">
+            <span className="text-base font-bold text-white">V</span>
           </div>
         )}
       </div>
@@ -94,7 +94,7 @@ export default function Sidebar() {
             to={item.path}
             title={collapsed ? item.label : undefined}
             className={({ isActive }) =>
-              `relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
+              `relative flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium transition-all duration-200 ${
                 collapsed ? "justify-center px-0" : ""
               } ${
                 isActive
@@ -108,7 +108,7 @@ export default function Sidebar() {
                 {isActive && !collapsed && (
                   <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-brand-600" />
                 )}
-                <item.icon className="h-[18px] w-[18px] shrink-0" />
+                <item.icon className="h-5 w-5 shrink-0" />
                 {!collapsed && item.label}
               </>
             )}

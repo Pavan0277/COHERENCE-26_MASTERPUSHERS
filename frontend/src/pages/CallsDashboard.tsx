@@ -254,14 +254,14 @@ export default function CallsDashboard() {
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Calls Dashboard</h1>
-          <p className="mt-0.5 text-sm text-gray-500">
+          <h1 className="text-3xl font-bold text-gray-900">Calls Dashboard</h1>
+          <p className="mt-0.5 text-base text-gray-500">
             All outbound VAPI calls and their transcripts
           </p>
         </div>
         <button
           onClick={() => load(page)}
-          className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 shadow-sm hover:bg-gray-50"
+          className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-base font-medium text-gray-600 shadow-sm hover:bg-gray-50"
         >
           <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
           Refresh
@@ -269,19 +269,19 @@ export default function CallsDashboard() {
       </div>
 
       {/* Stats bar */}
-      <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="mb-6 grid grid-cols-2 gap-5 sm:grid-cols-4">
         {[
           { label: "Total Calls",  value: total,                                                                       icon: PhoneCall, color: "text-sky-600 bg-sky-50" },
           { label: "Completed",    value: records.filter((r) => r.status === "completed").length,                      icon: Phone,     color: "text-green-600 bg-green-50" },
           { label: "Failed",       value: records.filter((r) => r.status === "failed" || r.status === "no-answer").length, icon: Phone, color: "text-red-600 bg-red-50" },
           { label: "In Progress",  value: records.filter((r) => r.status === "in-progress" || r.status === "ringing").length, icon: Phone, color: "text-blue-600 bg-blue-50" },
         ].map((stat) => (
-          <div key={stat.label} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-            <div className={`mb-2 inline-flex rounded-lg p-2 ${stat.color}`}>
-              <stat.icon className="h-4 w-4" />
+          <div key={stat.label} className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+            <div className={`mb-3 inline-flex rounded-lg p-2.5 ${stat.color}`}>
+              <stat.icon className="h-5 w-5" />
             </div>
-            <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-            <p className="text-xs text-gray-500">{stat.label}</p>
+            <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+            <p className="text-sm text-gray-500">{stat.label}</p>
           </div>
         ))}
       </div>
@@ -304,25 +304,25 @@ export default function CallsDashboard() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
-                <th className="px-5 py-3">Lead</th>
-                <th className="px-5 py-3">Phone</th>
-                <th className="px-5 py-3">Type</th>
-                <th className="px-5 py-3">Status</th>
-                <th className="px-5 py-3">Entries</th>
-                <th className="px-5 py-3">Date</th>
-                <th className="px-5 py-3" colSpan={3}></th>
+                <th className="px-6 py-4">Lead</th>
+                <th className="px-6 py-4">Phone</th>
+                <th className="px-6 py-4">Type</th>
+                <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4">Entries</th>
+                <th className="px-6 py-4">Date</th>
+                <th className="px-6 py-4" colSpan={3}></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {records.map((rec) => (
                 <tr key={rec._id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-5 py-3.5 font-medium text-gray-800">
+                  <td className="px-6 py-4 font-medium text-gray-800">
                     {rec.leadId?.name || "—"}
                   </td>
-                  <td className="px-5 py-3.5 text-gray-600 font-mono text-xs">
+                  <td className="px-6 py-4 text-gray-600 font-mono text-xs">
                     {rec.phoneNumber || rec.leadId?.phone || "—"}
                   </td>
-                  <td className="px-5 py-3.5">
+                  <td className="px-6 py-4">
                     {rec.metadata?.isFollowUp ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-semibold text-violet-700">
                         ↻ Follow-up
@@ -333,18 +333,18 @@ export default function CallsDashboard() {
                       </span>
                     )}
                   </td>
-                  <td className="px-5 py-3.5">
+                  <td className="px-6 py-4">
                     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ${STATUS_COLORS[rec.status] || "bg-gray-100 text-gray-600"}`}>
                       {rec.status}
                     </span>
                   </td>
-                  <td className="px-5 py-3.5 text-gray-500">
+                  <td className="px-6 py-4 text-gray-500">
                     {rec.transcript.length} msg{rec.transcript.length !== 1 ? "s" : ""}
                   </td>
-                  <td className="px-5 py-3.5 text-gray-400 text-xs">
+                  <td className="px-6 py-4 text-gray-400 text-xs">
                     {new Date(rec.createdAt).toLocaleString()}
                   </td>
-                  <td className="px-5 py-3.5">
+                  <td className="px-6 py-4">
                     <button
                       onClick={() => setSelected(rec.callId)}
                       className="rounded-lg border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-700 hover:bg-sky-100 transition"
@@ -352,7 +352,7 @@ export default function CallsDashboard() {
                       View Transcript
                     </button>
                   </td>
-                  <td className="px-3 py-3.5">
+                  <td className="px-4 py-4">
                     {!TERMINAL_STATUSES.has(rec.status) && rec.vapiId && (
                       <button
                         onClick={() => handleSync(rec)}
@@ -365,7 +365,7 @@ export default function CallsDashboard() {
                       </button>
                     )}
                   </td>
-                  <td className="px-3 py-3.5">
+                  <td className="px-4 py-4">
                     <button
                       onClick={() => setFollowUp(rec)}
                       title="Place a follow-up call to this lead"
