@@ -8,6 +8,10 @@
 import { TelegramClient } from "telegram";
 import { StringSession } from "telegram/sessions/index.js";
 import { Api } from "telegram";
+import { Logger } from "telegram/extensions/Logger.js";
+
+// Silence all GramJS internal logs (reconnect noise, connection info, etc.)
+Logger.setLevel("none");
 
 /**
  * Send a Telegram message to a lead using their phone number.
@@ -30,21 +34,31 @@ export async function sendTelegramByPhone(sessionString, apiId, apiHash, phone, 
         new StringSession(sessionString),
         Number(apiId),
         String(apiHash),
-        { connectionRetries: 3, requestRetries: 2 }
+        {
+            connectionRetries:   1,
+            requestRetries:      1,
+            autoReconnect:       false,
+            floodSleepThreshold: 0,
+            baseLogger:          new Logger("none"),
+        }
     );
 
-    await client.connect();
-
     try {
+        await client.connect();
+
+        if (!client.connected) {
+            throw new Error("Failed to connect to Telegram. Check your Session String, API ID and API Hash.");
+        }
+
         // Resolve phone → Telegram user by importing as a contact
         const importResult = await client.invoke(
             new Api.contacts.ImportContacts({
                 contacts: [
                     new Api.InputPhoneContact({
                         clientId: BigInt(Date.now()),
-                        phone: phone.trim(),
+                        phone:     phone.trim(),
                         firstName: "Lead",
-                        lastName: "",
+                        lastName:  "",
                     }),
                 ],
             })
@@ -59,8 +73,14 @@ export async function sendTelegramByPhone(sessionString, apiId, apiHash, phone, 
         }
 
         await client.sendMessage(user, { message });
+        console.log(`[Telegram] Message sent to ${phone} (userId: ${user.id})`);
         return { provider: "telegram_user", userId: user.id?.toString() };
+    } catch (err) {
+        console.error(`[Telegram] Send failed for ${phone}:`, err.message);
+        throw err;
     } finally {
-        await client.disconnect();
+        // Disconnect quietly — suppress the internal recv-loop "Not connected" noise
+        client.disconnect().catch(() => null);
     }
 }
+
