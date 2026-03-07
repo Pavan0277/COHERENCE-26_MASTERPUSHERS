@@ -1,27 +1,18 @@
 import { Handle, Position } from "@xyflow/react";
-import { Send, Mail, MessageSquare, Play } from "lucide-react";
+import { Send, Mail, MessageSquare, CheckCircle2 } from "lucide-react";
 import NodeToolbarActions from "./NodeToolbarActions";
 
-const PLATFORM_ICONS: Record<string, React.ReactNode> = {
-  email:    <Mail          className="h-6 w-6 text-white" />,
-  slack:    <MessageSquare className="h-6 w-6 text-white" />,
-  telegram: <Send          className="h-6 w-6 text-white" />,
-};
-
-const PLATFORM_LABELS: Record<string, string> = {
-  email: "Email", slack: "Slack", telegram: "Telegram",
-};
-
-const PLATFORM_BG: Record<string, string> = {
-  email:    "bg-blue-500 shadow-blue-200",
-  slack:    "bg-pink-500 shadow-pink-200",
-  telegram: "bg-sky-500 shadow-sky-200",
-};
-
-const PLATFORM_BADGE: Record<string, string> = {
-  email:    "bg-blue-50 text-blue-600",
-  slack:    "bg-pink-50 text-pink-600",
-  telegram: "bg-sky-50 text-sky-600",
+const PLATFORM_META: Record<string, {
+  label: string;
+  icon: React.ReactNode;
+  bg: string;
+  ring: string;
+  badge: string;
+  bar: string;
+}> = {
+  email:    { label: "Email",    icon: <Mail className="h-5 w-5 text-white" />,          bg: "bg-blue-500 shadow-blue-200",  ring: "ring-blue-400",  badge: "bg-blue-50 text-blue-600",   bar: "bg-blue-500"   },
+  slack:    { label: "Slack",    icon: <MessageSquare className="h-5 w-5 text-white" />, bg: "bg-pink-500 shadow-pink-200",  ring: "ring-pink-400",  badge: "bg-pink-50 text-pink-600",   bar: "bg-pink-500"   },
+  telegram: { label: "Telegram", icon: <Send className="h-5 w-5 text-white" />,          bg: "bg-sky-500 shadow-sky-200",    ring: "ring-sky-400",   badge: "bg-sky-50 text-sky-600",     bar: "bg-sky-500"    },
 };
 
 export default function SendNode({
@@ -35,59 +26,48 @@ export default function SendNode({
 }>) {
   const platform = data.config?.platform || "email";
   const message  = data.config?.message  || "";
+  const meta     = PLATFORM_META[platform] ?? PLATFORM_META.email;
 
   return (
-    <div className="relative select-none" style={{ width: 300 }}>
+    <div className="relative select-none animate-node-enter" style={{ width: 260 }}>
       <NodeToolbarActions id={id} selected={selected} accentColor="bg-orange-500" />
 
-      {/* Card box — header only */}
+      <Handle type="target" position={Position.Left} style={{ top: 28 }} className="!bg-orange-400 !w-3 !h-3 !border-2 !border-white !shadow-md" />
+
+      {/* Header card box — only icon + title + subtitle inside */}
       <div
-        className={`relative rounded-2xl bg-white transition-all duration-150 ${
+        className={`flex items-center gap-3 rounded-2xl bg-white px-4 py-3 transition-all duration-200 ${
           selected
-            ? "border-2 border-orange-400 shadow-xl shadow-orange-100/60"
-            : "border-2 border-gray-200 shadow-md hover:shadow-lg"
+            ? `shadow-xl ring-2 ${meta.ring}`
+            : "shadow-md ring-1 ring-slate-200 hover:-translate-y-0.5 hover:shadow-xl"
         }`}
       >
-        {/* Play button on left edge of card */}
-        <div className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 shadow-lg">
-          <Play className="h-3.5 w-3.5 ml-0.5 text-white" />
+        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl shadow-sm ${meta.bg}`}>
+          {meta.icon}
         </div>
-
-        <Handle type="target" position={Position.Top} className="!bg-orange-400 !w-3 !h-3 !border-2 !border-white" />
-        <Handle type="source" position={Position.Bottom} className="!bg-orange-400 !w-3 !h-3 !border-2 !border-white" />
-
-        <div className="flex items-center gap-3 px-5 py-4">
-          <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl shadow-sm ${
-            PLATFORM_BG[platform] ?? PLATFORM_BG.email
-          }`}>
-            {PLATFORM_ICONS[platform] ?? <Send className="h-6 w-6 text-white" />}
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-base font-bold leading-tight text-gray-900">
-              {data.label || "Send Message"}
-            </p>
-            <p className="mt-0.5 text-xs text-gray-400">Action Node</p>
-          </div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[14px] font-bold leading-tight text-slate-900">
+            {data.label || "Send Message"}
+          </p>
+          <p className="text-[11px] text-slate-400">Action Node</p>
         </div>
       </div>
 
-      {/* Body + badge — outside the box */}
-      <div className="px-1 pt-3">
+      {/* Content outside the box */}
+      <div className="px-1 pt-3 space-y-2">
         {message ? (
-          <p className="line-clamp-3 text-sm leading-relaxed text-gray-500">{message}</p>
+          <p className="line-clamp-2 text-[12px] leading-relaxed text-slate-500">{message}</p>
         ) : (
-          <p className="text-sm leading-relaxed text-gray-500">
-            Send a message via {PLATFORM_LABELS[platform] ?? platform} to each matched lead.
+          <p className="text-[12px] leading-relaxed text-slate-500">
+            Send a message via {meta.label} to each matched lead.
           </p>
         )}
-        <div className="mt-2">
-          <span className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${
-            PLATFORM_BADGE[platform] ?? PLATFORM_BADGE.email
-          }`}>
-            {PLATFORM_LABELS[platform] ?? platform}
-          </span>
-        </div>
+        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ${meta.badge}`}>
+          <CheckCircle2 className="h-3 w-3" />{meta.label}
+        </span>
       </div>
+
+      <Handle type="source" position={Position.Right} style={{ top: 28 }} className="!bg-orange-400 !w-3 !h-3 !border-2 !border-white !shadow-md" />
     </div>
   );
 }

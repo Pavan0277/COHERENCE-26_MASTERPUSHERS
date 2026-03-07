@@ -16,6 +16,37 @@
   }
 }
 
+/* ── Workflow builder animations ───────────────────────────────────────── */
+@keyframes slide-in-right {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+.animate-slide-in-right {
+  animation: slide-in-right 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes fade-up {
+  from { transform: translateY(10px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.animate-fade-up {
+  animation: fade-up 0.22s ease-out both;
+}
+
+@keyframes node-enter {
+  from { transform: scale(0.94) translateY(6px); opacity: 0; }
+  to   { transform: scale(1)    translateY(0);   opacity: 1; }
+}
+.animate-node-enter {
+  animation: node-enter 0.22s ease-out both;
+}
+
+/* Smooth ReactFlow edge animations */
+.react-flow__edge-path {
+  transition: stroke 0.2s;
+}
+/* ────────────────────────────────────────────────────────────────────────── */
+
 @layer components {
   .section-container {
     @apply max-w-7xl mx-auto px-6 sm:px-8 lg:px-12;

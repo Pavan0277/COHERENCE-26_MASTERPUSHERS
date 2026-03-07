@@ -92,18 +92,18 @@ export default function NodeConfigPanel({ node, workflowId, onUpdateConfig, onCl
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className={`flex items-center justify-between bg-gradient-to-r ${TYPE_COLORS[node.type] || "from-gray-500 to-gray-600"} px-4 py-3`}>
+      <div className={`flex items-center justify-between bg-gradient-to-r ${TYPE_COLORS[node.type] || "from-gray-500 to-gray-600"} px-4 py-3.5`}>
         <div>
-          <p className="text-xs font-medium uppercase tracking-wide text-white/80">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-white/70">
             Configure Node
           </p>
-          <p className="text-base font-semibold text-white">
+          <p className="text-[15px] font-bold text-white">
             {TYPE_LABELS[node.type] || node.type}
           </p>
         </div>
         <button
           onClick={onClose}
-          className="rounded-lg p-1.5 text-white/70 hover:bg-white/20 hover:text-white"
+          className="rounded-xl p-1.5 text-white/60 hover:bg-white/20 hover:text-white transition-colors"
         >
           <X className="h-5 w-5" />
         </button>

@@ -41,11 +41,14 @@ import {
   Play,
   Loader2,
   ChevronLeft,
+  ChevronRight,
   Trash2,
   MousePointerSquareDashed,
   Check,
   Mail,
   MessageSquare,
+  GitBranch,
+  Plus,
 } from "lucide-react";
 
 const nodeTypes = {
@@ -122,12 +125,13 @@ function WorkflowBuilderInner() {
     setPlatformForAllSendNodes,
   } = useWorkflow();
 
-  const [selectedNode, setSelectedNode] = useState<Node | null>(null);
-  const [saving, setSaving]           = useState(false);
-  const [saved, setSaved]             = useState(false);
-  const [running, setRunning]         = useState(false);
-  const [showAiModal, setShowAiModal] = useState(false);
-  const [toast, setToast]             = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [selectedNode, setSelectedNode]       = useState<Node | null>(null);
+  const [saving, setSaving]                   = useState(false);
+  const [saved, setSaved]                     = useState(false);
+  const [running, setRunning]                 = useState(false);
+  const [showAiModal, setShowAiModal]         = useState(false);
+  const [toast, setToast]                     = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
@@ -346,40 +350,54 @@ function WorkflowBuilderInner() {
 
   return (
     <div
-      className="flex h-screen flex-col bg-gray-50 outline-none overflow-hidden"
+      className="flex h-screen flex-col bg-slate-50 outline-none"
       tabIndex={-1}
       onKeyDown={onKeyDown}
     >
-      {/* Top bar */}
-      <header className="flex h-16 shrink-0 items-center gap-3 border-b border-gray-200 bg-white px-5 shadow-sm z-10">
+      {/* ── Top Bar ─────────────────────────────────────────────── */}
+      <header className="flex h-14 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4 shadow-sm z-20">
         <button
           onClick={() => navigate("/dashboard")}
-          className="rounded-md p-1.5 text-gray-500 hover:bg-gray-100"
-          title="Back to dashboard"
+          className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
         >
-          <ChevronLeft className="h-5 w-5" />
+          <ChevronLeft className="h-4 w-4" />
+          <span className="text-sm font-medium">Back</span>
         </button>
-        <div className="h-5 w-px bg-gray-200" />
-        <input
-          value={workflowName}
-          onChange={(e) => setWorkflowName(e.target.value)}
-          className="min-w-0 max-w-xs flex-1 rounded-md border border-transparent bg-transparent px-2 py-1.5 text-[17px] font-semibold text-gray-800 hover:border-gray-200 focus:border-gray-300 focus:outline-none"
-        />
-        <div className="flex items-center gap-2 ml-auto">
+        <div className="h-5 w-px bg-slate-200" />
+
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 shrink-0">
+            <GitBranch className="h-3.5 w-3.5 text-white" />
+          </div>
+          <input
+            value={workflowName}
+            onChange={(e) => setWorkflowName(e.target.value)}
+            className="min-w-0 max-w-sm flex-1 rounded-lg border border-transparent bg-transparent px-2 py-1 text-[15px] font-semibold text-slate-800 hover:border-slate-200 focus:border-indigo-300 focus:bg-slate-50/80 focus:outline-none focus:ring-2 focus:ring-indigo-100 transition-all"
+          />
+        </div>
+
+        <div className="flex items-center gap-2 ml-auto shrink-0">
+          <button
+            onClick={() => setShowAiModal(true)}
+            className="flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-sm font-medium text-violet-700 hover:bg-violet-100 transition-colors"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            AI Generate
+          </button>
           <button
             onClick={handleRun}
             disabled={running || !workflowId}
-            className="flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-40 transition-colors"
           >
-            {running ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+            {running ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
             Run
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 transition ${
+            className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-semibold text-white disabled:opacity-40 transition-all duration-200 ${
               saved
-                ? "bg-green-600 hover:bg-green-700"
+                ? "bg-emerald-600 hover:bg-emerald-700"
                 : "bg-indigo-600 hover:bg-indigo-700"
             }`}
           >
@@ -390,40 +408,78 @@ function WorkflowBuilderInner() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Left palette */}
-        <aside className="flex w-64 shrink-0 flex-col border-r border-gray-200 bg-white">
-          <div className="border-b border-gray-100 px-4 py-3.5">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Nodes</p>
-            <p className="mt-0.5 text-xs text-gray-400">Drag onto canvas</p>
+        {/* ── Left Sidebar (light, collapsible) ──────────────────── */}
+        <aside
+          className={`flex shrink-0 flex-col bg-white border-r border-slate-200 transition-all duration-300 overflow-hidden ${
+            sidebarCollapsed ? "w-14" : "w-[252px]"
+          }`}
+        >
+          {/* Header row with collapse toggle */}
+          <div className="flex h-10 items-center px-3 border-b border-slate-100">
+            {!sidebarCollapsed && (
+              <p className="flex-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+                Components
+              </p>
+            )}
+            <button
+              onClick={() => setSidebarCollapsed((c) => !c)}
+              title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+              className={`flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors ${
+                sidebarCollapsed ? "mx-auto" : ""
+              }`}
+            >
+              {sidebarCollapsed
+                ? <ChevronRight className="h-4 w-4" />
+                : <ChevronLeft className="h-4 w-4" />}
+            </button>
           </div>
-          <div className="flex-1 space-y-2 overflow-y-auto p-3">
+
+          {/* Node palette */}
+          <div className="flex-1 space-y-0.5 overflow-y-auto px-2 py-2">
             {NODE_PALETTE.map((item) => (
               <button
                 type="button"
                 key={item.type}
                 draggable
+                title={sidebarCollapsed ? item.label : undefined}
                 onKeyDown={(e) => { if (e.key === "Enter") onDragStart(e as unknown as React.DragEvent, item.type); }}
                 onDragStart={(e) => onDragStart(e, item.type)}
-                className={`flex w-full cursor-grab items-center gap-3 rounded-xl border border-gray-100 ${item.bg} px-3 py-3 shadow-sm hover:shadow-md active:cursor-grabbing active:opacity-70 transition`}
+                className={`group flex w-full cursor-grab items-center gap-3 rounded-xl text-left hover:bg-slate-50 active:cursor-grabbing active:scale-[0.97] transition-all duration-150 ${
+                  sidebarCollapsed ? "justify-center px-0 py-2" : "px-2 py-2.5"
+                }`}
               >
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${item.color}`}>
-                  <item.icon className="h-5 w-5 text-white" />
+                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${item.color} shadow-md`}>
+                  <item.icon className="h-[18px] w-[18px] text-white" />
                 </div>
-                <div className="min-w-0 text-left">
-                  <p className={`text-sm font-semibold ${item.text}`}>{item.label}</p>
-                  <p className="truncate text-xs text-gray-400">{item.description}</p>
-                </div>
+                {!sidebarCollapsed && (
+                  <>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[13px] font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">
+                        {item.label}
+                      </p>
+                      <p className="truncate text-[11px] text-slate-400 group-hover:text-slate-500 transition-colors">
+                        {item.description}
+                      </p>
+                    </div>
+                    <Plus className="h-4 w-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                  </>
+                )}
               </button>
             ))}
           </div>
-          <div className="border-t border-gray-100 px-3 py-3">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">Send Channel</p>
+
+          {/* Send channel — hidden when collapsed */}
+          {!sidebarCollapsed && (
+          <div className="border-t border-slate-200 px-4 py-3">
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+              Send Channel
+            </p>
             <div className="grid grid-cols-3 gap-1.5">
               {[
-                { value: "email",    label: "Email",    Icon: Mail,          active: "bg-blue-50 border-blue-300 text-blue-700",   idle: "border-gray-200 text-gray-500 hover:bg-gray-50" },
-                { value: "slack",    label: "Slack",    Icon: MessageSquare, active: "bg-pink-50 border-pink-300 text-pink-700",   idle: "border-gray-200 text-gray-500 hover:bg-gray-50" },
-                { value: "telegram", label: "Telegram", Icon: Send,          active: "bg-sky-50 border-sky-300 text-sky-700",     idle: "border-gray-200 text-gray-500 hover:bg-gray-50" },
-              ].map(({ value, label, Icon, active, idle }) => {
+                { value: "email",    label: "Email",    Icon: Mail },
+                { value: "slack",    label: "Slack",    Icon: MessageSquare },
+                { value: "telegram", label: "Telegram", Icon: Send },
+              ].map(({ value, label, Icon }) => {
                 const isActive = nodes.some(
                   (n) => n.type === "send" && (n.data as { config?: { platform?: string } }).config?.platform === value
                 );
@@ -432,8 +488,10 @@ function WorkflowBuilderInner() {
                     key={value}
                     onClick={() => setPlatformForAllSendNodes(value)}
                     title={`Set all Send nodes to ${label}`}
-                    className={`flex flex-col items-center gap-1 rounded-lg border py-2 text-[10px] font-medium transition ${
-                      isActive ? active : idle
+                    className={`flex flex-col items-center gap-1.5 rounded-xl py-2.5 text-[10px] font-semibold uppercase tracking-wide transition-all ${
+                      isActive
+                        ? "bg-indigo-600 text-white shadow-lg shadow-indigo-500/30"
+                        : "bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700"
                     }`}
                   >
                     <Icon className="h-3.5 w-3.5" />
@@ -442,91 +500,110 @@ function WorkflowBuilderInner() {
                 );
               })}
             </div>
-            <p className="mt-1.5 text-[10px] text-gray-400">Applies to all Send nodes</p>
+            <p className="mt-2 text-[10px] text-slate-400">Applies to all Send nodes</p>
           </div>
-          <div className="border-t border-gray-100 px-4 py-3 text-[11px] text-gray-400 space-y-0.5">
-            <p>• Click a node to configure</p>
-            <p>• Delete / ⌫ to remove</p>
+          )}
+
+          {/* Shortcuts — hidden when collapsed */}
+          {!sidebarCollapsed && (
+          <div className="border-t border-slate-200 px-4 py-3 space-y-1.5">
+            <div className="flex items-center gap-2">
+              <kbd className="rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 text-[10px] font-mono text-slate-500">⌘S</kbd>
+              <span className="text-[11px] text-slate-500">Save workflow</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <kbd className="rounded border border-slate-200 bg-slate-100 px-1.5 py-0.5 text-[10px] font-mono text-slate-500">Del</kbd>
+              <span className="text-[11px] text-slate-500">Delete selected</span>
+            </div>
           </div>
+          )}
         </aside>
 
-        {/* Canvas */}
-        <div
-          ref={reactFlowWrapper}
-          className="flex-1 overflow-hidden"
-          onDrop={onDrop}
-          onDragOver={onDragOver}
-        >
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onNodeClick={onNodeClick}
-            onPaneClick={onPaneClick}
-            onInit={setRfInstance}
-            nodeTypes={nodeTypes}
-            fitView
-            fitViewOptions={{ padding: 0.3 }}
-            defaultEdgeOptions={{
-              animated: true,
-              markerEnd: { type: MarkerType.ArrowClosed },
-              style: { strokeWidth: 2 },
-            }}
-            deleteKeyCode={null}
+        {/* ── Canvas + overlay right panel ────────────────────────── */}
+        <div className="relative flex-1 overflow-hidden">
+          {/* Canvas */}
+          <div
+            ref={reactFlowWrapper}
+            className="absolute inset-0"
+            onDrop={onDrop}
+            onDragOver={onDragOver}
           >
-            <Background gap={24} color="#e5e7eb" size={1.5} />
-            <Controls />
-            <MiniMap nodeStrokeWidth={3} zoomable pannable className="!rounded-xl !border-gray-200" />
-            {nodes.length === 0 && (
-              <Panel position="top-center">
-                <div className="mt-20 flex flex-col items-center gap-2 text-center text-gray-400 select-none pointer-events-none">
-                  <MousePointerSquareDashed className="h-10 w-10 opacity-30" />
-                  <p className="text-sm font-medium">Drag nodes from the left panel</p>
-                  <p className="text-xs">or use Generate with AI ✨</p>
-                </div>
-              </Panel>
-            )}
-          </ReactFlow>
-        </div>
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              onNodeClick={onNodeClick}
+              onPaneClick={onPaneClick}
+              onInit={setRfInstance}
+              nodeTypes={nodeTypes}
+              fitView
+              fitViewOptions={{ padding: 0.3 }}
+              defaultEdgeOptions={{
+                animated: true,
+                markerEnd: { type: MarkerType.ArrowClosed },
+                style: { strokeWidth: 2, stroke: "#6366f1" },
+              }}
+              deleteKeyCode={null}
+            >
+              <Background gap={20} size={1.5} color="#e2e8f0" />
+              <Controls className="!rounded-xl !border !border-slate-200 !shadow-lg" />
+              <MiniMap
+                nodeStrokeWidth={3}
+                zoomable
+                pannable
+                className="!rounded-xl !border !border-slate-200 !shadow-lg"
+                nodeColor={(node) => {
+                  const colors: Record<string, string> = {
+                    upload: "#3b82f6", filter: "#8b5cf6", ai_message: "#10b981",
+                    send: "#f97316", delay: "#64748b", call: "#0ea5e9",
+                  };
+                  return colors[node.type || ""] || "#94a3b8";
+                }}
+              />
+              {nodes.length === 0 && (
+                <Panel position="top-center">
+                  <div className="mt-28 flex flex-col items-center gap-3 text-center select-none pointer-events-none">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-xl border border-slate-200">
+                      <MousePointerSquareDashed className="h-7 w-7 text-slate-400" />
+                    </div>
+                    <div>
+                      <p className="text-[14px] font-semibold text-slate-600">Build your workflow</p>
+                      <p className="text-[12px] text-slate-400 mt-0.5">
+                        Drag components from the left · or use AI Generate ✨
+                      </p>
+                    </div>
+                  </div>
+                </Panel>
+              )}
+            </ReactFlow>
+          </div>
 
-        {/* Right config panel */}
-        {selectedNode && (
-          <aside className="flex w-80 shrink-0 flex-col overflow-hidden border-l border-gray-200 bg-white shadow-lg">
-            <NodeConfigPanel
-              node={selectedNode as unknown as { id: string; type: string; data: { label: string; config?: Record<string, unknown> } }}
-              workflowId={workflowId}
-              onUpdateConfig={updateNodeConfig}
-              onClose={() => setSelectedNode(null)}
-            />
-            <div className="border-t border-gray-100 p-3">
-              <button
-                onClick={() => handleDeleteNode(selectedNode.id)}
-                className="flex w-full items-center justify-center gap-2 rounded-lg border border-red-100 bg-red-50 py-2 text-sm font-medium text-red-600 hover:bg-red-100 transition"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete node
-              </button>
-            </div>
-          </aside>
-        )}
+          {/* Right config panel — slides over canvas */}
+          {selectedNode && (
+            <aside className="absolute right-0 top-0 z-10 flex h-full w-[360px] flex-col overflow-hidden border-l border-slate-200 bg-white shadow-2xl animate-slide-in-right">
+              <NodeConfigPanel
+                node={selectedNode as unknown as { id: string; type: string; data: { label: string; config?: Record<string, unknown> } }}
+                workflowId={workflowId}
+                onUpdateConfig={updateNodeConfig}
+                onClose={() => setSelectedNode(null)}
+              />
+              <div className="border-t border-slate-100 p-3">
+                <button
+                  onClick={() => handleDeleteNode(selectedNode.id)}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-100 bg-red-50 py-2 text-sm font-medium text-red-600 hover:bg-red-100 transition-colors"
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Delete node
+                </button>
+              </div>
+            </aside>
+          )}
+        </div>
       </div>
 
-      {/* Floating AI Assistant button + panel */}
-      {!showAiModal && (
-        <button
-          onClick={() => setShowAiModal(true)}
-          className="fixed bottom-6 right-6 z-50 group flex items-center gap-2 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 px-4 py-3 text-white shadow-lg shadow-purple-200 hover:shadow-xl hover:shadow-purple-300 hover:scale-105 active:scale-95 transition-all duration-200"
-          title="Open AI Workflow Assistant"
-        >
-          <span className="relative flex h-5 w-5 shrink-0">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-25" />
-            <Sparkles className="relative h-5 w-5" />
-          </span>
-          <span className="text-sm font-semibold tracking-tight">AI Assistant</span>
-        </button>
-      )}
+      {/* AI Modal */}
       {showAiModal && (
         <AiGeneratorModal
           onGenerate={handleAiGenerate}
@@ -534,13 +611,14 @@ function WorkflowBuilderInner() {
         />
       )}
 
-      {/* Toast */}
+      {/* Toast notification */}
       {toast && (
         <div
-          className={`fixed bottom-5 right-5 z-50 rounded-xl px-4 py-3 text-sm font-medium text-white shadow-lg ${
-            toast.type === "success" ? "bg-green-600" : "bg-red-500"
+          className={`fixed bottom-6 left-1/2 z-[100] -translate-x-1/2 flex items-center gap-2.5 rounded-xl px-5 py-3 text-sm font-semibold shadow-2xl animate-fade-up ${
+            toast.type === "success" ? "bg-emerald-600 text-white" : "bg-red-600 text-white"
           }`}
         >
+          {toast.type === "success" && <Check className="h-4 w-4 shrink-0" />}
           {toast.msg}
         </div>
       )}
