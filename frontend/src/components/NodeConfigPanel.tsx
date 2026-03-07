@@ -12,6 +12,16 @@ import SmsPanel from "./panels/SmsPanel";
 import ScorePanel from "./panels/ScorePanel";
 import NotifyPanel from "./panels/NotifyPanel";
 import SplitPanel from "./panels/SplitPanel";
+import UpdateFieldPanel from "./panels/UpdateFieldPanel";
+import AiClassifyPanel from "./panels/AiClassifyPanel";
+import WhatsAppPanel from "./panels/WhatsAppPanel";
+import LinkedInPanel from "./panels/LinkedInPanel";
+import WaitUntilPanel from "./panels/WaitUntilPanel";
+import TransformPanel from "./panels/TransformPanel";
+import StopPanel from "./panels/StopPanel";
+import EnrichPanel from "./panels/EnrichPanel";
+import MeetingPanel from "./panels/MeetingPanel";
+import HttpRequestPanel from "./panels/HttpRequestPanel";
 
 interface Props {
   node: {
@@ -25,35 +35,55 @@ interface Props {
 }
 
 const TYPE_LABELS: Record<string, string> = {
-  upload:     "Upload Leads",
-  filter:     "Filter",
-  ai_message: "AI Message",
-  send:       "Send",
-  delay:      "Delay",
-  call:       "VAPI Call",
-  webhook:    "Webhook",
-  condition:  "Condition",
-  tag:        "Tag Lead",
-  sms:        "Send SMS",
-  score:      "Score Lead",
-  notify:     "Notify",
-  split:      "A/B Split",
+  upload:       "Upload Leads",
+  filter:       "Filter",
+  ai_message:   "AI Message",
+  send:         "Send",
+  delay:        "Delay",
+  call:         "VAPI Call",
+  webhook:      "Webhook",
+  condition:    "Condition",
+  tag:          "Tag Lead",
+  sms:          "Send SMS",
+  score:        "Score Lead",
+  notify:       "Notify",
+  split:        "A/B Split",
+  update_field: "Update Lead Field",
+  ai_classify:  "AI Classify",
+  whatsapp:     "WhatsApp",
+  linkedin:     "LinkedIn",
+  wait_until:   "Wait Until",
+  transform:    "Data Transform",
+  stop:         "Stop / End",
+  enrich:       "Enrich Lead",
+  meeting:      "Meeting Link",
+  http_request: "HTTP Request",
 };
 
 const TYPE_COLORS: Record<string, string> = {
-  upload:     "from-blue-500 to-blue-600",
-  filter:     "from-yellow-400 to-yellow-500",
-  ai_message: "from-purple-500 to-purple-600",
-  send:       "from-green-500 to-green-600",
-  delay:      "from-orange-400 to-orange-500",
-  call:       "from-sky-500 to-sky-600",
-  webhook:    "from-rose-500 to-rose-600",
-  condition:  "from-amber-400 to-amber-500",
-  tag:        "from-indigo-500 to-indigo-600",
-  sms:        "from-fuchsia-500 to-fuchsia-600",
-  score:      "from-cyan-500 to-cyan-600",
-  notify:     "from-emerald-500 to-emerald-600",
-  split:      "from-violet-500 to-violet-600",
+  upload:       "from-blue-500 to-blue-600",
+  filter:       "from-yellow-400 to-yellow-500",
+  ai_message:   "from-purple-500 to-purple-600",
+  send:         "from-green-500 to-green-600",
+  delay:        "from-orange-400 to-orange-500",
+  call:         "from-sky-500 to-sky-600",
+  webhook:      "from-rose-500 to-rose-600",
+  condition:    "from-amber-400 to-amber-500",
+  tag:          "from-indigo-500 to-indigo-600",
+  sms:          "from-fuchsia-500 to-fuchsia-600",
+  score:        "from-cyan-500 to-cyan-600",
+  notify:       "from-emerald-500 to-emerald-600",
+  split:        "from-violet-500 to-violet-600",
+  update_field: "from-teal-500 to-teal-600",
+  ai_classify:  "from-pink-500 to-pink-600",
+  whatsapp:     "from-green-600 to-green-700",
+  linkedin:     "from-blue-700 to-blue-800",
+  wait_until:   "from-orange-500 to-orange-600",
+  transform:    "from-stone-500 to-stone-600",
+  stop:         "from-red-500 to-red-600",
+  enrich:       "from-yellow-600 to-yellow-700",
+  meeting:      "from-teal-600 to-teal-700",
+  http_request: "from-gray-700 to-gray-800",
 };
 
 export default function NodeConfigPanel({ node, workflowId, onUpdateConfig, onClose }: Props) {
@@ -157,6 +187,86 @@ export default function NodeConfigPanel({ node, workflowId, onUpdateConfig, onCl
         return (
           <SplitPanel
             config={config as { percentage?: number }}
+            onChange={(c) => onUpdateConfig(node.id, c as unknown as Record<string, unknown>)}
+            onClose={onClose}
+          />
+        );
+      case "update_field":
+        return (
+          <UpdateFieldPanel
+            config={config as { field?: string; value?: string }}
+            onChange={(c) => onUpdateConfig(node.id, c as unknown as Record<string, unknown>)}
+            onClose={onClose}
+          />
+        );
+      case "ai_classify":
+        return (
+          <AiClassifyPanel
+            config={config as { instructions?: string; categories?: string[]; outputField?: string }}
+            onChange={(c) => onUpdateConfig(node.id, c as unknown as Record<string, unknown>)}
+            onClose={onClose}
+          />
+        );
+      case "whatsapp":
+        return (
+          <WhatsAppPanel
+            config={config as { message?: string; from?: string }}
+            onChange={(c) => onUpdateConfig(node.id, c as unknown as Record<string, unknown>)}
+            onClose={onClose}
+          />
+        );
+      case "linkedin":
+        return (
+          <LinkedInPanel
+            config={config as { automationUrl?: string; subject?: string; message?: string }}
+            onChange={(c) => onUpdateConfig(node.id, c as unknown as Record<string, unknown>)}
+            onClose={onClose}
+          />
+        );
+      case "wait_until":
+        return (
+          <WaitUntilPanel
+            config={config as { datetime?: string; timezone?: string }}
+            onChange={(c) => onUpdateConfig(node.id, c as unknown as Record<string, unknown>)}
+            onClose={onClose}
+          />
+        );
+      case "transform":
+        return (
+          <TransformPanel
+            config={config as { field?: string; operation?: string; find?: string; replace?: string; template?: string; outputField?: string }}
+            onChange={(c) => onUpdateConfig(node.id, c as unknown as Record<string, unknown>)}
+            onClose={onClose}
+          />
+        );
+      case "stop":
+        return (
+          <StopPanel
+            config={config as { reason?: string; status?: string }}
+            onChange={(c) => onUpdateConfig(node.id, c as unknown as Record<string, unknown>)}
+            onClose={onClose}
+          />
+        );
+      case "enrich":
+        return (
+          <EnrichPanel
+            config={config as { provider?: string; apiKey?: string; lookupField?: string }}
+            onChange={(c) => onUpdateConfig(node.id, c as unknown as Record<string, unknown>)}
+            onClose={onClose}
+          />
+        );
+      case "meeting":
+        return (
+          <MeetingPanel
+            config={config as { platform?: string; url?: string; message?: string; channel?: string }}
+            onChange={(c) => onUpdateConfig(node.id, c as unknown as Record<string, unknown>)}
+            onClose={onClose}
+          />
+        );
+      case "http_request":
+        return (
+          <HttpRequestPanel
+            config={config as { url?: string; method?: string; headers?: string; body?: string; outputField?: string }}
             onChange={(c) => onUpdateConfig(node.id, c as unknown as Record<string, unknown>)}
             onClose={onClose}
           />

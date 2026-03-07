@@ -37,6 +37,16 @@ import SmsNode from "../components/nodes/SmsNode";
 import ScoreNode from "../components/nodes/ScoreNode";
 import NotifyNode from "../components/nodes/NotifyNode";
 import SplitNode from "../components/nodes/SplitNode";
+import UpdateFieldNode from "../components/nodes/UpdateFieldNode";
+import AiClassifyNode from "../components/nodes/AiClassifyNode";
+import WhatsAppNode from "../components/nodes/WhatsAppNode";
+import LinkedInNode from "../components/nodes/LinkedInNode";
+import WaitUntilNode from "../components/nodes/WaitUntilNode";
+import TransformNode from "../components/nodes/TransformNode";
+import StopNode from "../components/nodes/StopNode";
+import EnrichNode from "../components/nodes/EnrichNode";
+import MeetingNode from "../components/nodes/MeetingNode";
+import HttpRequestNode from "../components/nodes/HttpRequestNode";
 
 import {
   Upload,
@@ -62,38 +72,68 @@ import {
   Star,
   Bell,
   Shuffle,
+  PenLine,
+  Brain,
+  MessageCircle,
+  Link2,
+  Clock,
+  Zap,
+  StopCircle,
+  Database,
+  Calendar,
+  Globe,
 } from "lucide-react";
 
 const nodeTypes = {
-  upload:    UploadNode,
-  filter:    FilterNode,
-  ai_message: AiMessageNode,
-  send:      SendNode,
-  delay:     DelayNode,
-  call:      CallNode,
-  webhook:   WebhookNode,
-  condition: ConditionNode,
-  tag:       TagNode,
-  sms:       SmsNode,
-  score:     ScoreNode,
-  notify:    NotifyNode,
-  split:     SplitNode,
+  upload:       UploadNode,
+  filter:       FilterNode,
+  ai_message:   AiMessageNode,
+  send:         SendNode,
+  delay:        DelayNode,
+  call:         CallNode,
+  webhook:      WebhookNode,
+  condition:    ConditionNode,
+  tag:          TagNode,
+  sms:          SmsNode,
+  score:        ScoreNode,
+  notify:       NotifyNode,
+  split:        SplitNode,
+  update_field: UpdateFieldNode,
+  ai_classify:  AiClassifyNode,
+  whatsapp:     WhatsAppNode,
+  linkedin:     LinkedInNode,
+  wait_until:   WaitUntilNode,
+  transform:    TransformNode,
+  stop:         StopNode,
+  enrich:       EnrichNode,
+  meeting:      MeetingNode,
+  http_request: HttpRequestNode,
 };
 
 const NODE_PALETTE = [
-  { type: "upload",     label: "Upload Leads", description: "Import CSV / Excel",         icon: Upload,   color: "bg-blue-500",   text: "text-blue-700",   bg: "bg-blue-50" },
-  { type: "filter",     label: "Filter",       description: "Narrow down leads",          icon: Filter,   color: "bg-purple-500", text: "text-purple-700", bg: "bg-purple-50" },
-  { type: "ai_message", label: "AI Message",   description: "Generate with Gemini",       icon: Sparkles, color: "bg-green-500",  text: "text-green-700",  bg: "bg-green-50" },
-  { type: "send",       label: "Send Message", description: "Email · Slack · Telegram",   icon: Send,     color: "bg-orange-500", text: "text-orange-700", bg: "bg-orange-50" },
-  { type: "delay",      label: "Delay",        description: "Wait before next step",      icon: Timer,    color: "bg-gray-500",   text: "text-gray-700",   bg: "bg-gray-50" },
-  { type: "call",       label: "VAPI Call",    description: "AI voice call via VAPI",     icon: Phone,    color: "bg-sky-500",    text: "text-sky-700",    bg: "bg-sky-50" },
-  { type: "webhook",    label: "Webhook",      description: "POST to external URL",       icon: Webhook,  color: "bg-rose-500",   text: "text-rose-700",   bg: "bg-rose-50" },
-  { type: "condition",  label: "Condition",    description: "Branch on lead field",       icon: GitBranch, color: "bg-amber-500", text: "text-amber-700",  bg: "bg-amber-50" },
-  { type: "tag",        label: "Tag Lead",     description: "Label lead for CRM",         icon: Tag,      color: "bg-indigo-500", text: "text-indigo-700", bg: "bg-indigo-50" },
-  { type: "sms",        label: "Send SMS",     description: "SMS via Twilio",             icon: MessageSquare, color: "bg-fuchsia-500", text: "text-fuchsia-700", bg: "bg-fuchsia-50" },
-  { type: "score",      label: "Score Lead",   description: "Add / set lead score",        icon: Star,     color: "bg-cyan-500",    text: "text-cyan-700",    bg: "bg-cyan-50" },
-  { type: "notify",     label: "Notify",       description: "Internal alert to yourself",  icon: Bell,     color: "bg-emerald-500", text: "text-emerald-700", bg: "bg-emerald-50" },
-  { type: "split",      label: "A/B Split",    description: "Random % pass-through",       icon: Shuffle,  color: "bg-violet-500",  text: "text-violet-700",  bg: "bg-violet-50" },
+  { type: "upload",       label: "Upload Leads",     description: "Import CSV / Excel",          icon: Upload,       color: "bg-blue-500",    text: "text-blue-700",    bg: "bg-blue-50" },
+  { type: "filter",       label: "Filter",           description: "Narrow down leads",           icon: Filter,       color: "bg-purple-500",  text: "text-purple-700",  bg: "bg-purple-50" },
+  { type: "ai_message",   label: "AI Message",       description: "Generate with Sarvam AI",     icon: Sparkles,     color: "bg-green-500",   text: "text-green-700",   bg: "bg-green-50" },
+  { type: "send",         label: "Send Message",     description: "Email · Slack · Telegram",    icon: Send,         color: "bg-orange-500",  text: "text-orange-700",  bg: "bg-orange-50" },
+  { type: "delay",        label: "Delay",            description: "Wait before next step",       icon: Timer,        color: "bg-gray-500",    text: "text-gray-700",    bg: "bg-gray-50" },
+  { type: "call",         label: "VAPI Call",        description: "AI voice call via VAPI",      icon: Phone,        color: "bg-sky-500",     text: "text-sky-700",     bg: "bg-sky-50" },
+  { type: "webhook",      label: "Webhook",          description: "POST to external URL",        icon: Webhook,      color: "bg-rose-500",    text: "text-rose-700",    bg: "bg-rose-50" },
+  { type: "condition",    label: "Condition",        description: "Branch on lead field",        icon: GitBranch,    color: "bg-amber-500",   text: "text-amber-700",   bg: "bg-amber-50" },
+  { type: "tag",          label: "Tag Lead",         description: "Label lead for CRM",          icon: Tag,          color: "bg-indigo-500",  text: "text-indigo-700",  bg: "bg-indigo-50" },
+  { type: "sms",          label: "Send SMS",         description: "SMS via Twilio",              icon: MessageSquare, color: "bg-fuchsia-500", text: "text-fuchsia-700", bg: "bg-fuchsia-50" },
+  { type: "score",        label: "Score Lead",       description: "Add / set lead score",        icon: Star,         color: "bg-cyan-500",    text: "text-cyan-700",    bg: "bg-cyan-50" },
+  { type: "notify",       label: "Notify",           description: "Internal alert to yourself",  icon: Bell,         color: "bg-emerald-500", text: "text-emerald-700", bg: "bg-emerald-50" },
+  { type: "split",        label: "A/B Split",        description: "Random % pass-through",       icon: Shuffle,      color: "bg-violet-500",  text: "text-violet-700",  bg: "bg-violet-50" },
+  { type: "update_field", label: "Update Field",     description: "Set any lead field value",    icon: PenLine,      color: "bg-teal-500",    text: "text-teal-700",    bg: "bg-teal-50" },
+  { type: "ai_classify",  label: "AI Classify",      description: "Score leads with AI",         icon: Brain,        color: "bg-pink-500",    text: "text-pink-700",    bg: "bg-pink-50" },
+  { type: "whatsapp",     label: "WhatsApp",         description: "Send via WhatsApp (Twilio)",  icon: MessageCircle, color: "bg-green-600",  text: "text-green-800",   bg: "bg-green-50" },
+  { type: "linkedin",     label: "LinkedIn",         description: "Automate via webhook",        icon: Link2,        color: "bg-blue-700",    text: "text-blue-900",    bg: "bg-blue-50" },
+  { type: "wait_until",   label: "Wait Until",       description: "Pause until exact datetime",  icon: Clock,        color: "bg-orange-500",  text: "text-orange-700",  bg: "bg-orange-50" },
+  { type: "transform",    label: "Data Transform",   description: "Mutate a lead field value",   icon: Zap,          color: "bg-stone-500",   text: "text-stone-700",   bg: "bg-stone-50" },
+  { type: "stop",         label: "Stop / End",       description: "Terminate the workflow",      icon: StopCircle,   color: "bg-red-500",     text: "text-red-700",     bg: "bg-red-50" },
+  { type: "enrich",       label: "Enrich Lead",      description: "Fetch data from APIs",        icon: Database,     color: "bg-yellow-600",  text: "text-yellow-800",  bg: "bg-yellow-50" },
+  { type: "meeting",      label: "Meeting Link",     description: "Send Calendly / booking URL", icon: Calendar,     color: "bg-teal-600",    text: "text-teal-800",    bg: "bg-teal-50" },
+  { type: "http_request", label: "HTTP Request",     description: "Call any external API",       icon: Globe,        color: "bg-gray-700",    text: "text-gray-900",    bg: "bg-gray-100" },
 ] as const;
 
 const NODE_LABELS: Record<string, string> = Object.fromEntries(
@@ -125,19 +165,29 @@ const SEED_EDGES: Edge[] = [
 }));
 
 const DEFAULT_CONFIGS: Record<string, Record<string, unknown>> = {
-  upload:    {},
-  filter:    { filters: [] },
-  ai_message: { instructions: "" },
-  send:      { platform: "email", followup: false },
-  delay:     { min: 3600, max: 7200 },
-  call:      {},
-  webhook:   { url: "", method: "POST" },
-  condition: { column: "email", operator: "not_empty", value: "" },
-  tag:       { tag: "", color: "#6366f1" },
-  sms:       { message: "", from: "" },
-  score:     { value: 10, operation: "add" },
-  notify:    { channel: "email", message: "", subject: "Workflow Notification — {name}" },
-  split:     { percentage: 50 },
+  upload:       {},
+  filter:       { filters: [] },
+  ai_message:   { instructions: "" },
+  send:         { platform: "email", followup: false },
+  delay:        { min: 3600, max: 7200 },
+  call:         {},
+  webhook:      { url: "", method: "POST" },
+  condition:    { column: "email", operator: "not_empty", value: "" },
+  tag:          { tag: "", color: "#6366f1" },
+  sms:          { message: "", from: "" },
+  score:        { value: 10, operation: "add" },
+  notify:       { channel: "email", message: "", subject: "Workflow Notification — {name}" },
+  split:        { percentage: 50 },
+  update_field: { field: "name", value: "" },
+  ai_classify:  { instructions: "", categories: ["hot", "warm", "cold"], outputField: "classification" },
+  whatsapp:     { message: "", from: "" },
+  linkedin:     { automationUrl: "", subject: "", message: "" },
+  wait_until:   { datetime: "", timezone: "UTC" },
+  transform:    { field: "name", operation: "uppercase", find: "", replace: "", template: "", outputField: "" },
+  stop:         { reason: "", status: "completed" },
+  enrich:       { provider: "hunter", apiKey: "", lookupField: "email" },
+  meeting:      { platform: "Calendly", url: "", message: "Hi {name}, book a time: {bookingUrl}", channel: "email" },
+  http_request: { url: "", method: "POST", headers: "{}", body: "", outputField: "" },
 };
 
 function WorkflowBuilderInner() {

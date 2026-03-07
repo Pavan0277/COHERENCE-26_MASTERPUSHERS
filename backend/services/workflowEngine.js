@@ -4,8 +4,8 @@ import { LeadExecution } from "../models/leadExecution.model.js";
 import { UserSettings } from "../models/userSettings.model.js";
 import { MessageLog } from "../models/messageLog.model.js";
 import { applyFilter } from "../utils/filterEngine.js";
-import { generateOutreachMessage } from "./ai.service.js";
-import { sendMessage, sendSms } from "./messaging.service.js";
+import { generateOutreachMessage, classifyLead } from "./ai.service.js";
+import { sendMessage, sendSms, sendWhatsApp } from "./messaging.service.js";
 import { scheduleDelayedStep } from "./delay.service.js";
 import { createOutboundCall } from "./vapi.service.js";
 import { createInitialTranscript } from "./transcriptService.js";
@@ -15,6 +15,16 @@ import { createInitialTranscript } from "./transcriptService.js";
  * Finds the starting node (one that is not a target of any edge)
  * and follows edges sequentially.
  */
+function interpolateLeadFields(template, lead) {
+    return template
+        .replace(/\{name\}/g,    lead.name    || "")
+        .replace(/\{email\}/g,   lead.email   || "")
+        .replace(/\{company\}/g, lead.company || "")
+        .replace(/\{title\}/g,   lead.title   || "")
+        .replace(/\{phone\}/g,   lead.phone   || "")
+        .replace(/\{score\}/g,   String(lead.score || 0));
+}
+
 function getOrderedNodes(nodes, edges) {
     if (!edges || !edges.length) return nodes;
 
@@ -346,6 +356,251 @@ async function executeNode(node, lead, context) {
             return { continue: true, message: `A/B Split: lead included` };
         }
 
+        case "update_field": {
+            const { field, value } = config;
+            if (!field) {
+                return { continue: true, message: "Update Field node has no field — skipped" };
+            }
+            lead[field] = interpolateLeadFields(value || "", lead);
+            await lead.save().catch(() => {});
+            console.log(`[Engine] Updated field "${field}" for lead ${lead._id}`);
+            return { continue: true, message: `Field "${field}" updated` };
+        }
+
+        case "ai_classify": {
+            const instructions = config.instructions || "Classify this lead";
+            const categories   = Array.isArray(config.categories) ? config.categories : ["hot", "warm", "cold"];
+            const outputField  = config.outputField || "classification";
+            const classification = await classifyLead(lead, categories, instructions);
+            context.classification = classification;
+            const tags = Array.isArray(lead.tags) ? lead.tags : [];
+            if (!tags.find((t) => t.name === classification)) {
+                tags.push({ name: classification, color: "#ec4899", addedAt: new Date() });
+                lead.tags = tags;
+            }
+            lead[outputField] = classification;
+            await lead.save().catch(() => {});
+            console.log(`[Engine] Classified lead ${lead._id}: "${classification}"`);
+            return { continue: true, message: `Classified: ${classification}` };
+        }
+
+        case "whatsapp": {
+            const phone = lead.phone;
+            if (!phone) {
+                return { continue: true, message: "Lead has no phone — WhatsApp skipped" };
+            }
+            const waMessage = config.message || context.generatedMessage || "";
+            if (!waMessage) {
+                throw new Error("No message for WhatsApp. Add an AI Message node or set a message in the WhatsApp node.");
+            }
+            const fromOverride = config.from || "";
+            const waCreds = fromOverride
+                ? { sms: { ...(context.userCredentials?.sms || {}), from: fromOverride } }
+                : context.userCredentials;
+            let waError = null;
+            try {
+                await sendWhatsApp(lead, waMessage, waCreds);
+            } catch (err) {
+                waError = err;
+            }
+            await MessageLog.create({
+                userId:     context.userId,
+                workflowId: context.workflowId,
+                leadId:     lead._id,
+                leadName:   lead.name || "",
+                platform:   "whatsapp",
+                status:     waError ? "failed" : "sent",
+                error:      waError ? waError.message : null,
+            }).catch(() => {});
+            if (waError) throw waError;
+            console.log(`[Engine] WhatsApp sent to lead ${lead._id}`);
+            return { continue: true, message: "WhatsApp sent" };
+        }
+
+        case "linkedin": {
+            const automationUrl = config.automationUrl;
+            if (!automationUrl) {
+                return { continue: true, message: "LinkedIn node has no automation URL — skipped" };
+            }
+            const payload = {
+                name:    lead.name    || "",
+                email:   lead.email   || "",
+                phone:   lead.phone   || "",
+                company: lead.company || "",
+                title:   lead.title   || "",
+                message: interpolateLeadFields(config.message || "", lead),
+                subject: config.subject || "",
+            };
+            const res = await fetch(automationUrl, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+            if (!res.ok) {
+                throw new Error(`LinkedIn automation webhook failed with status ${res.status}`);
+            }
+            console.log(`[Engine] LinkedIn webhook fired for lead ${lead._id}`);
+            return { continue: true, message: "LinkedIn webhook sent" };
+        }
+
+        case "wait_until": {
+            const datetime = config.datetime;
+            if (!datetime) {
+                return { continue: true, message: "Wait Until node has no datetime — passing through" };
+            }
+            const targetMs = new Date(datetime).getTime();
+            const diffMs   = targetMs - Date.now();
+            if (diffMs <= 0) {
+                return { continue: true, message: "Wait Until datetime already passed — continuing" };
+            }
+            const diffSec = Math.ceil(diffMs / 1000);
+            await scheduleDelayedStep(
+                { min: diffSec, max: diffSec },
+                {
+                    workflowId: context.workflowId,
+                    nodeId: context.nextNodeId,
+                    leadId: lead._id.toString(),
+                    userId: context.userId,
+                }
+            );
+            return { continue: false, message: `Waiting until ${datetime}` };
+        }
+
+        case "transform": {
+            const { field, operation, find, replace, template, outputField } = config;
+            if (!field) {
+                return { continue: true, message: "Transform node has no field — skipped" };
+            }
+            const raw = String(lead[field] ?? "");
+            let transformed = raw;
+            switch (operation) {
+                case "uppercase": transformed = raw.toUpperCase(); break;
+                case "lowercase": transformed = raw.toLowerCase(); break;
+                case "trim":      transformed = raw.trim(); break;
+                case "replace":   transformed = raw.split(find || "").join(replace || ""); break;
+                case "template":  transformed = interpolateLeadFields(template || "", lead); break;
+                default:          transformed = raw;
+            }
+            const targetField = outputField || field;
+            lead[targetField] = transformed;
+            await lead.save().catch(() => {});
+            console.log(`[Engine] Transformed field "${field}" for lead ${lead._id}`);
+            return { continue: true, message: `Transformed: ${field} (${operation})` };
+        }
+
+        case "stop": {
+            const reason = config.reason || "Stopped by workflow";
+            context._stopStatus = config.status || "completed";
+            return { continue: false, message: reason };
+        }
+
+        case "enrich": {
+            const provider    = config.provider    || "hunter";
+            const apiKey      = config.apiKey      || "";
+            const lookupField = config.lookupField || "email";
+            const lookupValue = lead[lookupField]  || "";
+            if (!apiKey || !lookupValue) {
+                return { continue: true, message: "Enrich: missing API key or lookup value — skipped" };
+            }
+            try {
+                const enriched = {};
+                if (provider === "hunter") {
+                    const r = await fetch(`https://api.hunter.io/v2/email-finder?api_key=${encodeURIComponent(apiKey)}&company=${encodeURIComponent(lead.company || "")}&first_name=${encodeURIComponent((lead.name || "").split(" ")[0])}&last_name=${encodeURIComponent((lead.name || "").split(" ").slice(1).join(" "))}`);
+                    const d = await r.json();
+                    if (d.data?.email) enriched.email = d.data.email;
+                } else if (provider === "clearbit") {
+                    const r = await fetch(`https://person.clearbit.com/v2/combined/find?email=${encodeURIComponent(lookupValue)}`, {
+                        headers: { Authorization: `Bearer ${apiKey}` },
+                    });
+                    const d = await r.json();
+                    if (d.company?.name) enriched.company = d.company.name;
+                    if (d.person?.title) enriched.title   = d.person.title;
+                } else if (provider === "apollo") {
+                    const r = await fetch("https://api.apollo.io/v1/people/match", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", "X-Api-Key": apiKey },
+                        body: JSON.stringify({ email: lookupValue }),
+                    });
+                    const d = await r.json();
+                    if (d.person?.name)  enriched.name  = d.person.name;
+                    if (d.person?.title) enriched.title = d.person.title;
+                    if (d.person?.organization?.name) enriched.company = d.person.organization.name;
+                }
+                Object.assign(lead, enriched);
+                await lead.save().catch(() => {});
+                console.log(`[Engine] Enriched lead ${lead._id} via ${provider}`);
+                return { continue: true, message: `Enriched via ${provider}` };
+            } catch (err) {
+                console.warn(`[Engine] Enrich error for lead ${lead._id}: ${err.message}`);
+                return { continue: true, message: `Enrich failed (non-fatal): ${err.message}` };
+            }
+        }
+
+        case "meeting": {
+            const bookingUrl = config.url || "";
+            const channel    = (config.channel || "email").toLowerCase();
+            const rawMsg     = config.message || "Book a meeting with us: {bookingUrl}";
+            const meetMsg    = interpolateLeadFields(
+                rawMsg.replace(/\{bookingUrl\}/g, bookingUrl),
+                lead
+            );
+            if (!bookingUrl) {
+                return { continue: true, message: "Meeting node has no URL — skipped" };
+            }
+            let meetError = null;
+            try {
+                if (channel === "sms") {
+                    await sendSms(lead, meetMsg, context.userCredentials);
+                } else if (channel === "whatsapp") {
+                    await sendWhatsApp(lead, meetMsg, context.userCredentials);
+                } else {
+                    await sendMessage("email", lead, meetMsg, context.userCredentials);
+                }
+            } catch (err) {
+                meetError = err;
+            }
+            await MessageLog.create({
+                userId:     context.userId,
+                workflowId: context.workflowId,
+                leadId:     lead._id,
+                leadName:   lead.name || "",
+                platform:   channel,
+                status:     meetError ? "failed" : "sent",
+                error:      meetError ? meetError.message : null,
+            }).catch(() => {});
+            if (meetError) throw meetError;
+            console.log(`[Engine] Meeting link sent to lead ${lead._id} via ${channel}`);
+            return { continue: true, message: `Meeting link sent via ${channel}` };
+        }
+
+        case "http_request": {
+            const reqUrl = config.url;
+            if (!reqUrl) {
+                return { continue: true, message: "HTTP Request node has no URL — skipped" };
+            }
+            const method      = (config.method      || "POST").toUpperCase();
+            const outputField = config.outputField  || null;
+            let headers = {};
+            try { headers = JSON.parse(config.headers || "{}"); } catch { headers = {}; }
+            const rawBody = config.body ? interpolateLeadFields(config.body, lead) : null;
+            const defaultBody = JSON.stringify({ name: lead.name, email: lead.email, company: lead.company, phone: lead.phone });
+            const res = await fetch(reqUrl, {
+                method,
+                headers: { "Content-Type": "application/json", ...headers },
+                body: method !== "GET" ? (rawBody || defaultBody) : undefined,
+            });
+            const text = await res.text();
+            if (!res.ok) {
+                throw new Error(`HTTP Request ${method} ${reqUrl} failed with status ${res.status}`);
+            }
+            if (outputField) {
+                try { lead[outputField] = JSON.parse(text); } catch { lead[outputField] = text; }
+                await lead.save().catch(() => {});
+            }
+            console.log(`[Engine] HTTP Request fired for lead ${lead._id}: ${method} ${reqUrl}`);
+            return { continue: true, message: `HTTP ${method} sent` };
+        }
+
         default:
             throw new Error(`Unknown node type: ${node.type}`);
     }
@@ -432,10 +687,14 @@ export async function executeWorkflow(workflowId) {
                 const result = await executeNode(node, lead, context);
 
                 if (!result.continue) {
-                    if (node.type === "delay") {
+                    if (node.type === "delay" || node.type === "wait_until") {
                         // Paused — will resume from the next node via BullMQ
                         leadStatus = "running";
                         await updateExecution(exec, node, "completed");
+                    } else if (node.type === "stop") {
+                        // Explicit stop — use the status from context set by the stop case
+                        leadStatus = context._stopStatus || "completed";
+                        await updateExecution(exec, node, "skipped");
                     } else {
                         // Filtered out — mark node as skipped and finish
                         leadStatus = "completed";
@@ -524,7 +783,7 @@ export async function  resumeLeadFromNode(workflowId, nodeId, leadId) {
             const result = await executeNode(node, lead, context);
 
             if (!result.continue) {
-                if (node.type === "delay") {
+                if (node.type === "delay" || node.type === "wait_until") {
                     await updateExecution(exec, node, "completed");
                 } else {
                     await updateExecution(exec, node, "skipped");

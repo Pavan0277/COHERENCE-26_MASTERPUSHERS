@@ -149,6 +149,46 @@ async function sendSms(lead, message, credentials = {}) {
     return { provider: "sms", messageId: data.sid, status: data.status };
 }
 
+export async function sendWhatsApp(lead, message, credentials = {}) {
+    const phone = lead.phone?.trim();
+    if (!phone) {
+        throw new Error(`Lead "${lead.name || "N/A"}" has no phone number for WhatsApp.`);
+    }
+
+    const sid   = credentials.sms?.accountSid  || process.env.TWILIO_ACCOUNT_SID;
+    const token = credentials.sms?.authToken   || process.env.TWILIO_AUTH_TOKEN;
+    const rawFrom = credentials.sms?.from      || process.env.TWILIO_FROM_NUMBER || "";
+
+    if (!sid || !token) {
+        throw new Error("Twilio credentials are not configured. Set TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN.");
+    }
+    if (!rawFrom) {
+        throw new Error("Twilio From number is not configured.");
+    }
+
+    const from = rawFrom.startsWith("whatsapp:") ? rawFrom : `whatsapp:${rawFrom}`;
+    const to   = phone.startsWith("whatsapp:")   ? phone   : `whatsapp:${phone}`;
+
+    const url  = `https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`;
+    const body = new URLSearchParams({ To: to, From: from, Body: message }).toString();
+
+    const res = await fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Authorization: `Basic ${Buffer.from(`${sid}:${token}`).toString("base64")}`,
+        },
+        body,
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+        throw new Error(`Twilio WhatsApp error: ${data.message || res.statusText}`);
+    }
+
+    return { provider: "whatsapp", messageId: data.sid, status: data.status };
+}
+
 const platformHandlers = {
     email:    sendEmail,
     slack:    sendSlack,

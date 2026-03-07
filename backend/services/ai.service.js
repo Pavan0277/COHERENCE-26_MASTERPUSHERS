@@ -90,6 +90,23 @@ export async function generateWorkflow(prompt) {
     return workflow;
 }
 
+export async function classifyLead(lead, categories, instructions) {
+    const cats = Array.isArray(categories) && categories.length ? categories : ["hot", "warm", "cold"];
+    const prompt = `Classify this lead into exactly one of these categories: ${cats.join(", ")}.\n\nLead info:\nName: ${lead.name || ""}\nCompany: ${lead.company || ""}\nRole: ${lead.title || ""}\nEmail: ${lead.email || ""}\n\nInstructions: ${instructions || "Classify based on lead quality"}\n\nRespond with ONLY the category name, nothing else.`;
+
+    const client = getClient();
+    const completion = await client.chat.completions.create({
+        model: "sarvam-m",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.1,
+    });
+
+    const raw = completion.choices[0].message.content.trim().toLowerCase();
+    // Find the best matching category
+    const matched = cats.find((c) => raw.includes(c.toLowerCase()));
+    return matched || cats[0];
+}
+
 export async function generateOutreachMessage(lead, instructions) {
     const prompt = `Write a short personalized outreach message.
 
