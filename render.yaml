@@ -1,0 +1,86 @@
+services:
+  # ── Backend Web Service ─────────────────────────────────────────────────────
+  - type: web
+    name: masterpushers-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    # Render injects PORT automatically; the app reads process.env.PORT
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # ── Database ────────────────────────────────────────────────────────────
+      - key: MONGODB_URI
+        sync: false          # fill in Render dashboard — never commit secrets
+      - key: MONGO_DB_NAME
+        sync: false
+
+      # ── Auth / JWT ──────────────────────────────────────────────────────────
+      - key: ACCESS_TOKEN_SECRET
+        generateValue: true  # Render generates a secure random value
+      - key: ACCESS_TOKEN_EXPIRY
+        value: 1d
+      - key: REFRESH_TOKEN_SECRET
+        generateValue: true
+      - key: REFRESH_TOKEN_EXPIRY
+        value: 10d
+
+      # ── CORS ────────────────────────────────────────────────────────────────
+      # Set this to your deployed frontend URL (e.g. https://your-app.vercel.app)
+      - key: CORS_ORIGIN
+        sync: false
+
+      # ── Redis (BullMQ) ──────────────────────────────────────────────────────
+      # If you add the Redis service below, use fromService to wire it up.
+      # Otherwise paste a Upstash / Redis Cloud URL here.
+      - key: REDIS_URL
+        sync: false
+
+      # ── Backend public URL (used by VAPI webhooks) ──────────────────────────
+      # Render provides a stable URL: https://<service-name>.onrender.com
+      - key: BACKEND_URL
+        sync: false
+
+      # ── VAPI (AI calls) ─────────────────────────────────────────────────────
+      - key: VAPI_API_KEY
+        sync: false
+      - key: VAPI_ASSISTANT_ID
+        sync: false
+      - key: VAPI_PHONE_NUMBER_ID
+        sync: false
+
+      # ── Twilio ───────────────────────────────────────────────────────────────
+      - key: TWILIO_ACCOUNT_SID
+        sync: false
+      - key: TWILIO_AUTH_TOKEN
+        sync: false
+
+      # ── Sarvam AI ────────────────────────────────────────────────────────────
+      - key: SARVAM_API_KEY
+        sync: false
+
+      # ── Email (SMTP) ─────────────────────────────────────────────────────────
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_SECURE
+        value: "false"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+
+      # ── Slack ────────────────────────────────────────────────────────────────
+      - key: SLACK_WEBHOOK_URL
+        sync: false
+
+      # ── Telegram ─────────────────────────────────────────────────────────────
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false

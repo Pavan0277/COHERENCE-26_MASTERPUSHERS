@@ -1,5 +1,5 @@
 import { Handle, Position } from "@xyflow/react";
-import { Upload, Play } from "lucide-react";
+import { Upload, CheckCircle2, AlertCircle } from "lucide-react";
 import { useWorkflow } from "../../store/workflowStore";
 import NodeToolbarActions from "./NodeToolbarActions";
 
@@ -9,61 +9,58 @@ export default function UploadNode({ id, data, selected }: Readonly<{ id: string
   const isConfigured = cols.length > 0;
 
   return (
-    <div className="relative select-none" style={{ width: 300 }}>
+    <div className="relative select-none animate-node-enter" style={{ width: 260 }}>
       <NodeToolbarActions id={id} selected={selected} accentColor="bg-blue-500" />
 
-      {/* Card box — header only */}
+      {/* Header card box — only icon + title + subtitle inside */}
       <div
-        className={`relative rounded-2xl bg-white transition-all duration-150 ${
+        className={`flex items-center gap-3 rounded-2xl bg-white px-4 py-3 transition-all duration-200 ${
           selected
-            ? "border-2 border-blue-400 shadow-xl shadow-blue-100/60"
-            : "border-2 border-gray-200 shadow-md hover:shadow-lg"
+            ? "shadow-xl shadow-blue-100/60 ring-2 ring-blue-400"
+            : "shadow-md ring-1 ring-slate-200 hover:-translate-y-0.5 hover:shadow-xl"
         }`}
       >
-        {/* Play button on left edge of card */}
-        <div className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 shadow-lg">
-          <Play className="h-3.5 w-3.5 ml-0.5 text-white" />
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-500 shadow-sm shadow-blue-200">
+          <Upload className="h-5 w-5 text-white" />
         </div>
-
-        <Handle type="source" position={Position.Bottom} className="!bg-blue-400 !w-3 !h-3 !border-2 !border-white" />
-
-        <div className="flex items-center gap-3 px-5 py-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-500 shadow-sm shadow-blue-200">
-            <Upload className="h-6 w-6 text-white" />
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-base font-bold leading-tight text-gray-900">
-              {data.label || "Upload Leads"}
-            </p>
-            <p className="mt-0.5 text-xs text-gray-400">Import Node</p>
-          </div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[14px] font-bold leading-tight text-slate-900">
+            {data.label || "Upload Leads"}
+          </p>
+          <p className="text-[11px] text-slate-400">Import Node</p>
         </div>
       </div>
 
-      {/* Body + badge — outside the box */}
-      <div className="px-1 pt-3">
+      {/* Content outside the box */}
+      <div className="px-1 pt-3 space-y-2">
         {isConfigured ? (
           <div className="space-y-1">
             {cols.slice(0, 3).map(([field, col]) => (
-              <p key={field} className="text-sm text-gray-500">
-                <span className="font-medium text-gray-700">{field}</span>
-                <span className="text-gray-400"> ← "{col}"</span>
+              <p key={field} className="text-[12px] text-slate-500">
+                <span className="font-medium text-slate-700">{field}</span>
+                <span className="text-slate-400"> ← "{col}"</span>
               </p>
             ))}
+            {cols.length > 3 && (
+              <p className="text-[11px] text-slate-400">+{cols.length - 3} more columns</p>
+            )}
           </div>
         ) : (
-          <p className="text-sm leading-relaxed text-gray-500">
+          <p className="text-[12px] leading-relaxed text-slate-500">
             Import leads from a CSV or Excel file to start your automation.
           </p>
         )}
-        <div className="mt-2">
-          <span className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${
-            isConfigured ? "bg-blue-50 text-blue-600" : "bg-gray-100 text-gray-500"
-          }`}>
-            {isConfigured ? `${cols.length} columns mapped` : "Unassigned"}
-          </span>
-        </div>
+        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+          isConfigured ? "bg-blue-50 text-blue-600" : "bg-slate-100 text-slate-500"
+        }`}>
+          {isConfigured
+            ? <><CheckCircle2 className="h-3 w-3" />{cols.length} columns mapped</>
+            : <><AlertCircle className="h-3 w-3" />Unassigned</>
+          }
+        </span>
       </div>
+
+      <Handle type="source" position={Position.Right} style={{ top: 28 }} className="!bg-blue-400 !w-3 !h-3 !border-2 !border-white !shadow-md" />
     </div>
   );
 }
