@@ -1,4 +1,5 @@
 import { workflowQueue } from "../queues/workflow.queue.js";
+import { isRedisAvailable } from "../config/redis.js";
 
 /**
  * Generate a random integer between min and max (inclusive), in milliseconds.
@@ -17,6 +18,11 @@ function randomDelay(min, max) {
  * @returns {Promise<Object>} The queued job info
  */
 export async function scheduleDelayedStep(delayConfig, jobData) {
+    if (!(await isRedisAvailable())) {
+        throw new Error(
+            "Redis is required for delayed workflow steps. Start Redis (e.g. docker run -d -p 6379:6379 redis) or set REDIS_URL."
+        );
+    }
     const { min = 0, max = 0 } = delayConfig;
 
     if (min < 0 || max < 0 || min > max) {
