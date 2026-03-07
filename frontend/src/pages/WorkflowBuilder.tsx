@@ -82,6 +82,7 @@ import {
   Database,
   Calendar,
   Globe,
+  ArrowLeft,
 } from "lucide-react";
 
 const nodeTypes = {
@@ -459,7 +460,18 @@ function WorkflowBuilderInner() {
       onKeyDown={onKeyDown}
     >
       {/* ── Top Bar ─────────────────────────────────────────────── */}
-      <header className="flex h-14 shrink-0 items-center gap-3 border-b border-slate-200 bg-white px-4 shadow-sm z-20">
+      <header className="flex h-14 shrink-0 items-center gap-2 border-b border-slate-200 bg-white px-3 shadow-sm z-20">
+        {/* Back to workflows */}
+        <button
+          onClick={() => navigate("/workflows")}
+          title="Back to Workflows"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </button>
+
+        <div className="h-5 w-px bg-slate-200 shrink-0" />
+
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 shrink-0">
             <GitBranch className="h-3.5 w-3.5 text-white" />
@@ -480,7 +492,7 @@ function WorkflowBuilderInner() {
         <div className="flex items-center gap-2 ml-auto shrink-0">
           <button
             onClick={() => setShowAiModal(true)}
-            className="flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-sm font-medium text-violet-700 hover:bg-violet-100 transition-colors"
+            className="flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 px-3 py-1.5 text-sm font-medium text-violet-700 hover:bg-violet-100 active:scale-95 transition-all duration-150"
           >
             <Sparkles className="h-3.5 w-3.5" />
             AI Generate
@@ -488,7 +500,7 @@ function WorkflowBuilderInner() {
           <button
             onClick={handleRun}
             disabled={running || !workflowId}
-            className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-40 transition-colors"
+            className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-40 active:scale-95 transition-all duration-150"
           >
             {running ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
             Run
@@ -496,7 +508,7 @@ function WorkflowBuilderInner() {
           <button
             onClick={handleSave}
             disabled={saving}
-            className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-semibold text-white disabled:opacity-40 transition-all duration-200 ${
+            className={`flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-semibold text-white disabled:opacity-40 active:scale-95 transition-all duration-150 ${
               saved
                 ? "bg-emerald-600 hover:bg-emerald-700"
                 : "bg-indigo-600 hover:bg-indigo-700"

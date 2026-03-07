@@ -99,24 +99,24 @@ export default function Settings() {
   ];
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8">
+    <div className="mx-auto max-w-2xl">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Messaging Settings</h1>
-        <p className="mt-1 text-sm text-gray-500">
-          Configure the credentials used when your workflows send messages to leads.
+        <h1 className="text-2xl font-bold text-heading">Settings</h1>
+        <p className="mt-1 text-sm text-body-light">
+          Configure credentials for messaging, calls, and integrations.
         </p>
       </div>
 
       {/* Tab bar */}
-      <div className="mb-6 flex gap-1 rounded-xl border border-gray-200 bg-gray-50 p-1">
+      <div className="mb-6 flex gap-1 rounded-xl border border-gray-200 bg-white p-1 shadow-sm">
         {tabs.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             onClick={() => setActiveTab(id)}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium transition-all ${
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium transition-all duration-150 ${
               activeTab === id
-                ? "bg-white shadow-sm text-gray-900"
-                : "text-gray-500 hover:text-gray-700"
+                ? "bg-indigo-600 shadow-sm text-white"
+                : "text-gray-500 hover:text-gray-800 hover:bg-gray-50"
             }`}
           >
             <Icon className="h-4 w-4" />
@@ -126,11 +126,14 @@ export default function Settings() {
       </div>
 
       {loading ? (
-        <div className="flex h-40 items-center justify-center text-sm text-gray-400">
-          Loading settings…
+        <div className="flex h-48 items-center justify-center rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div className="flex flex-col items-center gap-3">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+            <p className="text-sm text-body-light">Loading settings…</p>
+          </div>
         </div>
       ) : (
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm animate-fade-up">
           {/* ── EMAIL ── */}
           {activeTab === "email" && (
             <div className="space-y-4">
@@ -469,7 +472,7 @@ export default function Settings() {
 
       {/* Error */}
       {error && (
-        <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>
+        <p className="mt-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">{error}</p>
       )}
 
       {/* Save button */}
@@ -477,11 +480,13 @@ export default function Settings() {
         <button
           onClick={handleSave}
           disabled={saving || loading}
-          className="flex items-center gap-2 rounded-xl bg-gray-900 px-6 py-2.5 text-sm font-medium text-white hover:bg-gray-700 disabled:opacity-50 transition"
+          className={`flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold text-white disabled:opacity-50 active:scale-95 transition-all duration-150 shadow-sm ${
+            saved ? "bg-emerald-600 hover:bg-emerald-700" : "bg-indigo-600 hover:bg-indigo-700"
+          }`}
         >
           {saved ? (
             <>
-              <CheckCircle className="h-4 w-4 text-green-400" />
+              <CheckCircle className="h-4 w-4" />
               Saved!
             </>
           ) : (

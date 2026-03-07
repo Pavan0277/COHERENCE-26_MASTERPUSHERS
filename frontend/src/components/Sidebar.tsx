@@ -26,7 +26,7 @@ function getUserName(): string {
 
 const navItems = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
-  { label: "Workflows", path: "/workflows/new", icon: GitBranch },
+  { label: "Workflows", path: "/workflows",     icon: GitBranch },
   { label: "Calls",     path: "/calls",          icon: Phone },
   { label: "Settings",  path: "/settings",        icon: Settings },
 ];
@@ -94,17 +94,24 @@ export default function Sidebar() {
             to={item.path}
             title={collapsed ? item.label : undefined}
             className={({ isActive }) =>
-              `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
+              `relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
                 collapsed ? "justify-center px-0" : ""
               } ${
                 isActive
                   ? "bg-brand-50 text-brand-700"
-                  : "text-body hover:bg-gray-100 hover:text-heading"
+                  : "text-body hover:bg-gray-50 hover:text-heading"
               }`
             }
           >
-            <item.icon className="h-[18px] w-[18px] shrink-0" />
-            {!collapsed && item.label}
+            {({ isActive }) => (
+              <>
+                {isActive && !collapsed && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-brand-600" />
+                )}
+                <item.icon className="h-[18px] w-[18px] shrink-0" />
+                {!collapsed && item.label}
+              </>
+            )}
           </NavLink>
         ))}
       </nav>

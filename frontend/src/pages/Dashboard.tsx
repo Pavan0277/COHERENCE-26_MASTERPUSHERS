@@ -250,9 +250,14 @@ export default function Dashboard() {
               <GitBranch className="h-4 w-4 text-brand-600" />
               <h2 className="text-base font-semibold text-heading">Recent Workflows</h2>
             </div>
-            <button onClick={() => window.location.href = "/workflows/new"} className="text-xs font-medium text-brand-600 transition hover:text-brand-700">
-              + New
-            </button>
+            <div className="flex items-center gap-3">
+              <a href="/workflows" className="text-xs font-medium text-body-light transition hover:text-brand-600">
+                View all →
+              </a>
+              <a href="/workflows/new" className="text-xs font-semibold text-brand-600 transition hover:text-brand-700">
+                + New
+              </a>
+            </div>
           </div>
           {workflows.length === 0 ? (
             <div className="flex h-36 items-center justify-center text-sm text-body-light">
@@ -273,7 +278,7 @@ export default function Dashboard() {
                   {workflows.slice(0, 5).map((wf) => (
                     <tr
                       key={wf._id}
-                      className="cursor-pointer transition hover:bg-surface-muted"
+                      className="cursor-pointer transition-colors hover:bg-brand-50/40"
                       onClick={() => window.location.href = `/workflows/${wf._id}`}
                     >
                       <td className="whitespace-nowrap px-5 py-3 font-medium text-heading">{wf.name}</td>

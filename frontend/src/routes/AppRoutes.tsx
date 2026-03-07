@@ -11,6 +11,7 @@ import LandingPage from "../pages/Landing/LandingPage";
 import MainLayout from "../layouts/MainLayout";
 import PrivateRoute from "../components/PrivateRoute";
 import WorkflowBuilder from "../pages/WorkflowBuilder";
+import WorkflowsPage from "../pages/WorkflowsPage";
 import Settings from "../pages/Settings";
 import CallsDashboard from "../pages/CallsDashboard";
 
@@ -33,6 +34,7 @@ export default function AppRoutes() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/calls" element={<CallsDashboard />} />
+          <Route path="/workflows" element={<WorkflowsPage />} />
         </Route>
         {/* WorkflowBuilder is full-screen — no shared layout wrapper */}
         <Route path="/workflows/new" element={<WorkflowBuilder />} />

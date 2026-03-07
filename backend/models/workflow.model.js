@@ -11,6 +11,13 @@ const nodeSchema = new mongoose.Schema(
             required: true,
             enum: ["upload", "filter", "ai_message", "send", "delay", "call", "webhook", "condition", "tag", "sms", "score", "notify", "split", "update_field", "ai_classify", "whatsapp", "linkedin", "wait_until", "transform", "stop", "enrich", "meeting", "http_request"],
         },
+        position: {
+            type: {
+                x: { type: Number, default: 0 },
+                y: { type: Number, default: 0 },
+            },
+            default: () => ({ x: 200, y: 200 }),
+        },
         config: {
             type: mongoose.Schema.Types.Mixed,
             default: {},
