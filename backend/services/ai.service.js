@@ -16,7 +16,7 @@ The JSON must have this exact structure:
   "nodes": [
     {
       "id": string (unique, e.g. "node_1"),
-      "type": "upload" | "filter" | "ai_message" | "send" | "delay",
+      "type": "upload" | "filter" | "ai_message" | "send" | "delay" | "call" | "webhook" | "condition" | "tag" | "sms" | "score" | "notify" | "split",
       "config": object
     }
   ],
@@ -31,6 +31,29 @@ Node config rules:
 - ai_message: { "instructions": string }
 - send: { "platform": "email" | "slack" | "telegram", "followup": boolean (optional) }
 - delay: { "min": number (seconds), "max": number (seconds) }
+- call: { "assistantId": string (optional), "phoneNumberId": string (optional) }
+- webhook: { "url": string, "method": "POST" | "PUT" | "PATCH" | "GET" }
+- condition: { "column": string, "operator": "equals|not_equals|contains|greater_than|less_than|is_empty|not_empty", "value": string }
+- tag: { "tag": string, "color": string (hex color, e.g. "#6366f1") }
+- sms: { "message": string (leave empty to use AI-generated message from a preceding ai_message node), "from": string (optional Twilio From number override) }
+- score: { "value": number, "operation": "add" | "subtract" | "set" }
+- notify: { "channel": "email" | "slack", "message": string (may use {name}, {email}, {company}, {title} placeholders), "subject": string (email only) }
+- split: { "percentage": number (1–99, % of leads that continue; the rest are skipped) }
+
+Node descriptions:
+- upload: Entry point. Imports CSV leads into the workflow.
+- filter: Filters leads by matching column values — leads that don't match are dropped.
+- ai_message: Uses AI to generate a personalised outreach message for each lead.
+- send: Sends the generated message via email, Slack, or Telegram.
+- delay: Waits a random time between min and max seconds before continuing.
+- call: Places an outbound AI voice call to the lead's phone number using VAPI.
+- webhook: POSTs the lead's data as JSON to an external URL (CRM, Zapier, etc).
+- condition: Passes leads through only if they match a specific field condition; otherwise skips.
+- tag: Attaches a colour-coded label/tag to the lead for CRM categorisation.
+- sms: Sends an SMS to the lead's phone number via Twilio. Place after ai_message to send the AI-generated text.
+- score: Adds, subtracts, or sets a numeric score on the lead (useful for lead qualification).
+- notify: Sends an internal alert to the workflow owner (not the lead) via email or Slack — useful at important milestones.
+- split: Randomly lets only a percentage of leads through (A/B testing or volume limiting).
 
 Always connect nodes using edges from first to last in sequence.
 Return ONLY the raw JSON object.`;

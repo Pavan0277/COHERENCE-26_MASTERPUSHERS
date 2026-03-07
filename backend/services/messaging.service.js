@@ -112,16 +112,54 @@ async function sendTelegram(lead, message, credentials = {}) {
     return { provider: "telegram", messageId: data.result.message_id };
 }
 
+async function sendSms(lead, message, credentials = {}) {
+    const phone = lead.phone?.trim();
+    if (!phone) {
+        throw new Error(`Lead "${lead.name || "N/A"}" has no phone number for SMS.`);
+    }
+
+    const sid   = credentials.sms?.accountSid  || process.env.TWILIO_ACCOUNT_SID;
+    const token = credentials.sms?.authToken   || process.env.TWILIO_AUTH_TOKEN;
+    const from  = credentials.sms?.from        || process.env.TWILIO_FROM_NUMBER || "";
+
+    if (!sid || !token) {
+        throw new Error("Twilio credentials are not configured. Set TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN.");
+    }
+    if (!from) {
+        throw new Error("Twilio From number is not configured. Set TWILIO_FROM_NUMBER in .env or provide it in the SMS node config.");
+    }
+
+    const url = `https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`;
+    const body = new URLSearchParams({ To: phone, From: from, Body: message }).toString();
+
+    const res = await fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Authorization: `Basic ${Buffer.from(`${sid}:${token}`).toString("base64")}`,
+        },
+        body,
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+        throw new Error(`Twilio SMS error: ${data.message || res.statusText}`);
+    }
+
+    return { provider: "sms", messageId: data.sid, status: data.status };
+}
+
 const platformHandlers = {
-    email: sendEmail,
-    slack: sendSlack,
+    email:    sendEmail,
+    slack:    sendSlack,
     telegram: sendTelegram,
+    sms:      sendSms,
 };
 
 /**
  * Send a message via the specified platform.
  *
- * @param {"email" | "slack" | "telegram"} platform
+ * @param {"email" | "slack" | "telegram" | "sms"} platform
  * @param {Object} lead - Lead object with name, email, company, title
  * @param {string} message - The message text to send
  * @returns {Promise<Object>} result with provider-specific info
@@ -131,9 +169,11 @@ export async function sendMessage(platform, lead, message, credentials = {}) {
 
     if (!handler) {
         throw new Error(
-            `Unsupported platform: "${platform}". Supported: email, slack, telegram`
+            `Unsupported platform: "${platform}". Supported: email, slack, telegram, sms`
         );
     }
 
     return handler(lead, message, credentials);
 }
+
+export { sendSms };

@@ -5,7 +5,7 @@ import { UserSettings } from "../models/userSettings.model.js";
 import { MessageLog } from "../models/messageLog.model.js";
 import { applyFilter } from "../utils/filterEngine.js";
 import { generateOutreachMessage } from "./ai.service.js";
-import { sendMessage } from "./messaging.service.js";
+import { sendMessage, sendSms } from "./messaging.service.js";
 import { scheduleDelayedStep } from "./delay.service.js";
 import { createOutboundCall } from "./vapi.service.js";
 import { createInitialTranscript } from "./transcriptService.js";
@@ -193,6 +193,157 @@ async function executeNode(node, lead, context) {
             );
             console.log(`[Engine] Call initiated for lead ${lead._id}: callId=${callId}`);
             return { continue: true, message: `Call initiated: ${callId}` };
+        }
+
+        case "webhook": {
+            const url    = config.url;
+            const method = (config.method || "POST").toUpperCase();
+            if (!url) {
+                return { continue: true, message: "Webhook node has no URL — skipped" };
+            }
+            const payload = {
+                name:    lead.name    || "",
+                email:   lead.email   || "",
+                phone:   lead.phone   || "",
+                company: lead.company || "",
+                title:   lead.title   || "",
+                ...(lead._doc || lead.toObject?.() || {}),
+            };
+            const res = await fetch(url, {
+                method,
+                headers: { "Content-Type": "application/json" },
+                body: method !== "GET" ? JSON.stringify(payload) : undefined,
+            });
+            if (!res.ok) {
+                throw new Error(`Webhook ${method} ${url} failed with status ${res.status}`);
+            }
+            console.log(`[Engine] Webhook fired for lead ${lead._id}: ${method} ${url}`);
+            return { continue: true, message: `Webhook sent: ${url}` };
+        }
+
+        case "condition": {
+            const { column, operator, value } = config;
+            if (!column || !operator) {
+                return { continue: true, message: "Condition node has no column/operator — passing through" };
+            }
+            const { applyFilter } = await import("../utils/filterEngine.js");
+            const passes = applyFilter(lead, { column, operator, value: value || "" });
+            if (!passes) {
+                return { continue: false, message: `Condition not met: ${column} ${operator} ${value}` };
+            }
+            return { continue: true };
+        }
+
+        case "tag": {
+            const tag   = config.tag   || "";
+            const color = config.color || "#6366f1";
+            if (!tag) {
+                return { continue: true, message: "Tag node has no tag value — skipped" };
+            }
+            // Store tag on the lead document under lead.tags array
+            const tags = Array.isArray(lead.tags) ? lead.tags : [];
+            if (!tags.find((t) => t.name === tag)) {
+                tags.push({ name: tag, color, addedAt: new Date() });
+                lead.tags = tags;
+                await lead.save().catch(() => {});
+            }
+            console.log(`[Engine] Tagged lead ${lead._id}: "${tag}"`);
+            return { continue: true, message: `Tagged: ${tag}` };
+        }
+
+        case "sms": {
+            const phone = lead.phone;
+            if (!phone) {
+                return { continue: true, message: "Lead has no phone — SMS skipped" };
+            }
+            const smsMessage = config.message || context.generatedMessage || "";
+            if (!smsMessage) {
+                throw new Error("No message to send via SMS. Add an AI Message node or set a message in the SMS node.");
+            }
+            const fromOverride = config.from || "";
+            const smsCreds = fromOverride
+                ? { sms: { ...context.userCredentials.sms, from: fromOverride } }
+                : context.userCredentials;
+            let smsError = null;
+            try {
+                await sendSms(lead, smsMessage, smsCreds);
+            } catch (err) {
+                smsError = err;
+            }
+            await MessageLog.create({
+                userId:     context.userId,
+                workflowId: context.workflowId,
+                leadId:     lead._id,
+                leadName:   lead.name || "",
+                platform:   "sms",
+                status:     smsError ? "failed" : "sent",
+                error:      smsError ? smsError.message : null,
+            }).catch(() => {});
+            if (smsError) throw smsError;
+            console.log(`[Engine] SMS sent to lead ${lead._id}`);
+            return { continue: true, message: "SMS sent" };
+        }
+
+        case "score": {
+            const value     = Number(config.value)     || 0;
+            const operation = config.operation || "add";
+            const current   = Number(lead.score)       || 0;
+            if (operation === "add")      lead.score = current + value;
+            else if (operation === "subtract") lead.score = current - value;
+            else                          lead.score = value;
+            await lead.save().catch(() => {});
+            console.log(`[Engine] Score updated for lead ${lead._id}: ${lead.score}`);
+            return { continue: true, message: `Score ${operation}: ${lead.score}` };
+        }
+
+        case "notify": {
+            const notifyChannel = (config.channel || "email").toLowerCase();
+            const rawMsg        = config.message || "Lead {name} ({email}) reached a workflow step.";
+            const subject       = config.subject || "Workflow Notification";
+            // Interpolate lead fields
+            const filled = rawMsg
+                .replace(/\{name\}/g,    lead.name    || "")
+                .replace(/\{email\}/g,   lead.email   || "")
+                .replace(/\{company\}/g, lead.company || "")
+                .replace(/\{title\}/g,   lead.title   || "")
+                .replace(/\{phone\}/g,   lead.phone   || "");
+            if (notifyChannel === "slack") {
+                const wh = context.userCredentials?.slack?.webhookUrl || process.env.SLACK_WEBHOOK_URL;
+                if (!wh || wh.includes("your/webhook")) {
+                    console.warn("[Engine] Notify: Slack URL not set, skipping");
+                } else {
+                    await fetch(wh, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ text: `*${subject}*\n\n${filled}` }),
+                    }).catch((e) => console.warn(`[Engine] Notify Slack error: ${e.message}`));
+                }
+            } else {
+                // email notification to admin
+                const { sendMessage: sm } = await import("./messaging.service.js");
+                const adminLead = {
+                    name:  "Admin",
+                    email: context.userCredentials?.email?.user ||
+                           context.userCredentials?.email?.from ||
+                           process.env.SMTP_USER || "",
+                };
+                if (adminLead.email) {
+                    await sm("email", adminLead, filled, context.userCredentials)
+                        .catch((e) => console.warn(`[Engine] Notify email error: ${e.message}`));
+                } else {
+                    console.warn("[Engine] Notify: no admin email configured, skipping");
+                }
+            }
+            return { continue: true, message: `Notification sent via ${notifyChannel}` };
+        }
+
+        case "split": {
+            const pct  = Number(config.percentage) || 50;
+            const pass = Math.random() * 100 < pct;
+            if (!pass) {
+                return { continue: false, message: `A/B Split: lead excluded (${pct}% pass rate)` };
+            }
+            return { continue: true, message: `A/B Split: lead included` };
         }
 
         default:

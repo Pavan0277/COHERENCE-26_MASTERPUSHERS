@@ -9,7 +9,7 @@ const nodeSchema = new mongoose.Schema(
         type: {
             type: String,
             required: true,
-            enum: ["upload", "filter", "ai_message", "send", "delay", "call"],
+            enum: ["upload", "filter", "ai_message", "send", "delay", "call", "webhook", "condition", "tag", "sms", "score", "notify", "split"],
         },
         config: {
             type: mongoose.Schema.Types.Mixed,

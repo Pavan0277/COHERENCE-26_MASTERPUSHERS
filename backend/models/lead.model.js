@@ -39,6 +39,22 @@ const leadSchema = new mongoose.Schema(
             type: String,
             trim: true,
         },
+        tags: [
+            {
+                name:    { type: String, required: true },
+                color:   { type: String, default: "#6366f1" },
+                addedAt: { type: Date,   default: Date.now },
+                _id:     false,
+            },
+        ],
+        score: {
+            type: Number,
+            default: 0,
+        },
+        extra: {
+            type: mongoose.Schema.Types.Mixed,
+            default: {},
+        },
     },
     {
         timestamps: true,
