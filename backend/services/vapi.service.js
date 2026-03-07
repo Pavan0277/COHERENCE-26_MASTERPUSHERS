@@ -44,16 +44,14 @@ export async function createOutboundCall(toNumber, assistantId = null, phoneNumb
     const webhookUrl = backendUrl ? `${backendUrl}/api/calls/webhook/vapi` : undefined;
 
     const body = {
-        assistantId:  assistant,
+        assistantId:   assistant,
         phoneNumberId: phoneNumId,
-        customer: { number: normalizedNumber },
-        ...(webhookUrl && { serverUrl: webhookUrl }),
-        assistantOverrides: {
-            transportConfigurations: [
-                { provider: "twilio", timeout: 120 },
-            ],
-            ...(webhookUrl && { server: { url: webhookUrl } }),
-        },
+        customer:      { number: normalizedNumber },
+        ...(webhookUrl && {
+            assistantOverrides: {
+                server: { url: webhookUrl },
+            },
+        }),
     };
 
     console.log("[VAPI] Initiating call to:", normalizedNumber);
