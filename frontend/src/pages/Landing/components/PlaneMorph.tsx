@@ -48,9 +48,9 @@ export default function PlaneMorph() {
   );
 
   return (
-    <section className="relative bg-surface-subtle">
-      {/* Scroll container - tall to give scroll room */}
-      <div ref={containerRef} className="relative" style={{ height: '300vh' }}>
+    <section className="relative bg-white">
+      {/* Scroll container */}
+      <div ref={containerRef} className="relative" style={{ height: '200vh' }}>
         {/* Sticky inner */}
         <div className="sticky top-0 h-screen flex items-center overflow-hidden">
           <div className="section-container w-full">
@@ -125,33 +125,27 @@ export default function PlaneMorph() {
               <div className="relative flex items-center justify-center">
                 {!preloader.loaded ? (
                   /* Loading state */
-                  <div className="w-full aspect-video flex flex-col items-center justify-center bg-white rounded-2xl shadow-card">
-                    <div className="w-48 h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="w-full aspect-video flex flex-col items-center justify-center bg-gradient-to-br from-brand-50 to-blue-50 rounded-2xl border border-brand-100/30">
+                    <div className="w-48 h-1.5 bg-brand-100 rounded-full overflow-hidden">
                       <motion.div
-                        className="h-full bg-brand-600 rounded-full"
+                        className="h-full bg-brand-500 rounded-full"
                         initial={{ width: 0 }}
                         animate={{ width: `${preloader.progress * 100}%` }}
                         transition={{ duration: 0.3 }}
                       />
                     </div>
                     <p className="text-xs text-body-light mt-3">
-                      Loading animation... {Math.round(preloader.progress * 100)}%
+                      Loading... {Math.round(preloader.progress * 100)}%
                     </p>
                   </div>
                 ) : (
                   <div className="relative">
-                    <div className="absolute -inset-8 bg-gradient-radial from-brand-100/30 to-transparent rounded-full blur-2xl" />
+                    <div className="absolute -inset-6 bg-gradient-radial from-brand-100/20 to-transparent rounded-full blur-2xl" />
                     <canvas
                       ref={canvasRef}
-                      className="relative w-full max-w-lg mx-auto rounded-xl"
+                      className="relative w-full max-w-lg mx-auto rounded-2xl shadow-card"
                       style={{ imageRendering: 'auto' }}
                     />
-                    {/* Frame counter */}
-                    <div className="absolute bottom-4 right-4 bg-white/80 backdrop-blur rounded-lg px-3 py-1.5 shadow-sm">
-                      <p className="text-[10px] font-mono text-body-light">
-                        {String(currentFrame + 1).padStart(3, '0')} / {FRAME_COUNT}
-                      </p>
-                    </div>
                   </div>
                 )}
               </div>

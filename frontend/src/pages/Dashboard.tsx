@@ -102,12 +102,13 @@ export default function Dashboard() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-heading">
+          <div className="mb-1 h-1 w-10 rounded-full bg-gradient-to-r from-brand-500 to-brand-300" />
+          <h1 className="text-3xl font-extrabold tracking-tight text-gray-900">
             {getUserName() ? `Welcome back, ${getUserName()}!` : "Dashboard"}
           </h1>
-          <p className="text-sm text-body-light">Here's what's happening today.</p>
+          <p className="mt-1 text-sm font-medium text-gray-400">Here's what's happening today.</p>
         </div>
         <div className="flex items-center gap-3">
           {/* Channel Selector */}

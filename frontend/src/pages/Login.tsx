@@ -56,11 +56,12 @@ export default function Login() {
   return (
     <AuthLayout illustration={<SignInIllustration />} pageLabel="Sign In">
       <div className="w-full max-w-xl">
-        <h1 className="text-4xl font-bold text-gray-900 leading-tight mb-3">
+        <div className="mb-1 h-1 w-10 rounded-full bg-gradient-to-r from-brand-500 to-brand-300" />
+        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 leading-[1.15] mb-2">
           Welcome to our Velo.<br />
-          Sign In to see latest updates.
+          <span className="bg-gradient-to-r from-brand-600 to-brand-400 bg-clip-text text-transparent">Sign In</span> to see latest updates.
         </h1>
-        <p className="text-sm text-gray-400 mb-9">Enter your details to proceed further</p>
+        <p className="text-sm font-medium text-gray-400 mb-9">Enter your details to proceed further</p>
 
         {error && (
           <div className="mb-5 text-sm text-red-500 bg-red-50 px-3 py-3 rounded-lg">{error}</div>

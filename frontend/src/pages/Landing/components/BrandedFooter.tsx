@@ -1,97 +1,123 @@
-import AnimatedSection from '../../../components/AnimatedSection';
-import { Headphones, BookOpen, Code, MessageSquare } from 'lucide-react';
+const footerSections = [
+  {
+    title: 'Product',
+    links: ['Pipeline CRM', 'Workflow Engine', 'Lead Scoring', 'Unified Inbox', 'Integrations', 'API', 'Security'],
+  },
+  {
+    title: 'Use Cases',
+    links: ['Sales Teams', 'Marketing', 'RevOps', 'Customer Success', 'Startups', 'Enterprise'],
+  },
+  {
+    title: 'Resources',
+    links: ['Documentation', 'API Reference', 'Blog', 'Guides', 'Changelog', 'Community', 'Webinars'],
+  },
+  {
+    title: 'Company',
+    links: ['About', 'Careers', 'Press', 'Contact', 'Partners'],
+  },
+  {
+    title: 'Legal',
+    links: ['Privacy Policy', 'Terms of Service', 'Cookie Policy', 'GDPR', 'DPA'],
+  },
+];
 
-const supportLinks = [
-  { icon: Headphones, label: 'Help Center' },
-  { icon: BookOpen, label: 'Knowledge Base' },
-  { icon: Code, label: 'API Documentation' },
-  { icon: MessageSquare, label: 'Contact Support' },
+const socials = [
+  {
+    name: 'X',
+    svg: (
+      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+      </svg>
+    ),
+  },
+  {
+    name: 'LinkedIn',
+    svg: (
+      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+      </svg>
+    ),
+  },
+  {
+    name: 'GitHub',
+    svg: (
+      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+      </svg>
+    ),
+  },
+  {
+    name: 'YouTube',
+    svg: (
+      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+      </svg>
+    ),
+  },
 ];
 
 export default function BrandedFooter() {
   return (
-    <section className="relative bg-gradient-to-br from-brand-700 via-brand-800 to-brand-950 text-white overflow-hidden">
-      {/* Background funnel silhouette */}
-      <div className="absolute inset-0 opacity-[0.03]">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/3 w-[600px] h-[500px]">
-          <div className="w-full h-20 bg-white/30 -skew-x-6 mb-2 rounded" />
-          <div className="w-4/5 mx-auto h-20 bg-white/30 -skew-x-3 mb-2 rounded" />
-          <div className="w-3/5 mx-auto h-20 bg-white/30 skew-x-3 mb-2 rounded" />
-          <div className="w-2/5 mx-auto h-20 bg-white/30 skew-x-6 rounded" />
+    <footer className="border-t border-gray-200 bg-white">
+      <div className="max-w-[1200px] mx-auto px-5 pt-16 pb-10">
+        {/* Top: Tagline + social */}
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-12">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-7 h-7 rounded-lg bg-brand-600 flex items-center justify-center">
+                <span className="text-white font-bold text-xs">V</span>
+              </div>
+              <span className="text-[17px] font-bold text-gray-900 lowercase">velo</span>
+            </div>
+            <p className="text-[14px] text-gray-500 max-w-[300px]">
+              Close without limits.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            {socials.map((s) => (
+              <a
+                key={s.name}
+                href="#"
+                className="w-8 h-8 rounded-md border border-gray-200 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-300 transition-colors"
+                aria-label={s.name}
+              >
+                {s.svg}
+              </a>
+            ))}
+          </div>
+        </div>
+
+        {/* Link columns — n8n-style wide grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8 mb-12">
+          {footerSections.map((section) => (
+            <div key={section.title}>
+              <h4 className="text-[12px] font-semibold text-gray-800 uppercase tracking-wider mb-3">{section.title}</h4>
+              <ul className="space-y-2">
+                {section.links.map((link) => (
+                  <li key={link}>
+                    <a href="#" className="text-[13px] text-gray-500 hover:text-gray-700 transition-colors">
+                      {link}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+
+        {/* Bottom bar */}
+        <div className="pt-6 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="text-[12px] text-gray-400">
+            &copy; {new Date().getFullYear()} Velo Technologies, Inc. All rights reserved.
+          </p>
+          <div className="flex items-center gap-4">
+            <a href="#" className="text-[12px] text-gray-400 hover:text-gray-600 transition-colors">Privacy</a>
+            <a href="#" className="text-[12px] text-gray-400 hover:text-gray-600 transition-colors">Terms</a>
+            <a href="#" className="text-[12px] text-gray-400 hover:text-gray-600 transition-colors">Cookies</a>
+            <a href="#" className="text-[12px] text-gray-400 hover:text-gray-600 transition-colors">Status</a>
+          </div>
         </div>
       </div>
-
-      <div className="section-container relative z-10 py-20 md:py-28">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-8 items-start">
-          {/* Left — Tagline */}
-          <AnimatedSection direction="left">
-            <div>
-              <div className="flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 rounded-lg bg-white/10 backdrop-blur flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">V</span>
-                </div>
-                <span className="text-xl font-bold tracking-tight">Velo</span>
-              </div>
-              <h2 className="text-4xl md:text-5xl font-bold leading-tight">
-                Every<br />
-                moment<br />
-                <span className="text-brand-300">matters.</span>
-              </h2>
-              <p className="mt-6 text-brand-200 text-sm leading-relaxed max-w-xs">
-                Trusted by over 10,000 teams worldwide to capture, nurture, and
-                convert leads at unprecedented speeds.
-              </p>
-            </div>
-          </AnimatedSection>
-
-          {/* Center — Support */}
-          <AnimatedSection delay={0.1}>
-            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-8 border border-white/10">
-              <h3 className="text-lg font-bold mb-6">Support</h3>
-              <div className="space-y-4">
-                {supportLinks.map((link) => (
-                  <a
-                    key={link.label}
-                    href="#"
-                    className="flex items-center gap-3 text-sm text-brand-100 hover:text-white transition-colors group"
-                  >
-                    <div className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-white/10 transition-colors">
-                      <link.icon size={16} />
-                    </div>
-                    {link.label}
-                  </a>
-                ))}
-              </div>
-            </div>
-          </AnimatedSection>
-
-          {/* Right — Social */}
-          <AnimatedSection delay={0.2} direction="right">
-            <div className="bg-white/5 backdrop-blur-md rounded-2xl p-8 border border-white/10">
-              <h3 className="text-lg font-bold mb-6">Social</h3>
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { name: 'Instagram', handle: '@velocrm' },
-                  { name: 'X / Twitter', handle: '@velo_hq' },
-                  { name: 'LinkedIn', handle: 'Velo CRM' },
-                  { name: 'YouTube', handle: 'Velo Official' },
-                ].map((social) => (
-                  <a
-                    key={social.name}
-                    href="#"
-                    className="bg-white/5 hover:bg-white/10 rounded-xl p-4 text-center transition-colors group"
-                  >
-                    <p className="text-sm font-semibold group-hover:text-white transition-colors">
-                      {social.name}
-                    </p>
-                    <p className="text-[10px] text-brand-300 mt-1">{social.handle}</p>
-                  </a>
-                ))}
-              </div>
-            </div>
-          </AnimatedSection>
-        </div>
-      </div>
-    </section>
+    </footer>
   );
 }
