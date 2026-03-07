@@ -33,9 +33,10 @@ export default function AppRoutes() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/calls" element={<CallsDashboard />} />
-          <Route path="/workflows/new" element={<WorkflowBuilder />} />
-          <Route path="/workflows/:id" element={<WorkflowBuilder />} />
         </Route>
+        {/* WorkflowBuilder is full-screen — no shared layout wrapper */}
+        <Route path="/workflows/new" element={<WorkflowBuilder />} />
+        <Route path="/workflows/:id" element={<WorkflowBuilder />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
