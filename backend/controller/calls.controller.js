@@ -50,28 +50,29 @@ export const getTranscript = asyncHandler(async (req, res) => {
  *   hang               → treat as completed
  */
 export const vapiWebhook = asyncHandler(async (req, res) => {
-    // Always ack immediately so VAPI doesn't retry
-    res.json({ received: true });
-
     const msg    = req.body?.message || req.body;
     const type   = msg?.type;
     const call   = msg?.call || {};
     const vapiId = call?.id || msg?.callId;
 
+    // Always ack immediately so VAPI doesn't retry
+    res.json({ received: true });
+
     if (!type || !vapiId) return;
 
     console.log(`[VAPI Webhook] type=${type} vapiId=${vapiId}`);
 
-    // ── Status updates ─────────────────────────────────────────────
-    if (type === "status-update") {
+    // ── Status updates (status-update / call-update) ───────────────
+    if (type === "status-update" || type === "call-update") {
         const STATUS_MAP = {
-            queued:     "initiated",
-            ringing:    "ringing",
-            "in-progress": "in-progress",
-            forwarding: "in-progress",
-            ended:      "completed",
+            queued:           "initiated",
+            ringing:          "ringing",
+            "in-progress":    "in-progress",
+            forwarding:       "in-progress",
+            ended:            "completed",
         };
-        const status = STATUS_MAP[msg?.status];
+        const rawStatus = msg?.status || call?.status || "";
+        const status = STATUS_MAP[rawStatus];
         if (status) {
             await updateCallStatusByVapiId(vapiId, status).catch(console.error);
         }
@@ -80,9 +81,10 @@ export const vapiWebhook = asyncHandler(async (req, res) => {
 
     // ── End-of-call report — has the complete transcript and duration ───
     if (type === "end-of-call-report") {
-        const messages    = msg?.artifact?.messages || msg?.messages || [];
-        const duration    = call?.duration || msg?.duration || 0;
-        const summary     = msg?.summary   || msg?.artifact?.summary || null;
+        const messages      = msg?.artifact?.messages || msg?.messages || [];
+        const duration      = msg?.durationSeconds || call?.duration || msg?.duration || 0;
+        // VAPI places the AI-generated summary in analysis.summary (newer API)
+        const summary       = msg?.analysis?.summary || msg?.summary || msg?.artifact?.summary || null;
         const rawTranscript = msg?.artifact?.transcript || msg?.transcript || "";
 
         if (messages.length > 0) {
@@ -91,7 +93,6 @@ export const vapiWebhook = asyncHandler(async (req, res) => {
         } else if (typeof rawTranscript === "string" && rawTranscript.trim()) {
             // VAPI sent a plain-text transcript like:
             // "User: hi\nAI: hello\nUser: bye"
-            // Parse each line into entries
             const entries = rawTranscript
                 .split("\n")
                 .map((line) => line.trim())
@@ -106,9 +107,9 @@ export const vapiWebhook = asyncHandler(async (req, res) => {
                 .filter((e) => e.content.length > 0);
 
             const update = { status: "completed" };
-            if (entries.length)   update.transcript = entries;
-            if (duration)         update.duration   = duration;
-            if (summary)          update.summary    = String(summary);
+            if (entries.length) update.transcript = entries;
+            if (duration)       update.duration   = duration;
+            if (summary)        update.summary    = String(summary);
             await updateCallStatusByVapiId(vapiId, "completed", update).catch(console.error);
         } else {
             await updateCallStatusByVapiId(vapiId, "completed", { duration }).catch(console.error);
@@ -119,7 +120,7 @@ export const vapiWebhook = asyncHandler(async (req, res) => {
     // ── Incremental transcript lines (only store "final" to avoid noise) ──
     if (type === "transcript") {
         // transcriptType can be "partial" or "final" — only persist final
-        if (msg?.transcriptType !== "final" && msg?.transcriptType) return;
+        if (msg?.transcriptType && msg.transcriptType !== "final") return;
         const role    = msg?.role === "user" ? "caller" : "ai";
         const content = msg?.transcript || "";
         if (content.trim()) {

@@ -37,25 +37,25 @@ export default function AiMessageNode({
 
   return (
     <div className="relative select-none" style={{ width: 300 }}>
-      {/* Left floating run button */}
-      <div className="absolute -left-4 top-5 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 shadow-lg">
-        <Play className="h-3.5 w-3.5 ml-0.5 text-white" />
-      </div>
-
       <NodeToolbarActions id={id} selected={selected} accentColor="bg-green-500" />
 
-      {/* Card */}
+      {/* Card box — header only */}
       <div
-        className={`rounded-2xl bg-white transition-all duration-150 ${
+        className={`relative rounded-2xl bg-white transition-all duration-150 ${
           selected
             ? "border-2 border-green-400 shadow-xl shadow-green-100/60"
             : "border-2 border-gray-200 shadow-md hover:shadow-lg"
         }`}
       >
-        <Handle type="target" position={Position.Top} className="!bg-green-400 !w-3 !h-3 !border-2 !border-white" />
+        {/* Play button on left edge of card */}
+        <div className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 shadow-lg">
+          <Play className="h-3.5 w-3.5 ml-0.5 text-white" />
+        </div>
 
-        {/* Header */}
-        <div className="flex items-center gap-3 px-5 pt-4 pb-3">
+        <Handle type="target" position={Position.Top} className="!bg-green-400 !w-3 !h-3 !border-2 !border-white" />
+        <Handle type="source" position={Position.Bottom} className="!bg-green-400 !w-3 !h-3 !border-2 !border-white" />
+
+        <div className="flex items-center gap-3 px-5 py-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-green-500 shadow-sm shadow-green-200">
             <Sparkles className="h-6 w-6 text-white" />
           </div>
@@ -66,24 +66,18 @@ export default function AiMessageNode({
             <p className="mt-0.5 text-xs text-gray-400">AI Node</p>
           </div>
         </div>
+      </div>
 
-        <div className="h-px bg-gray-100" />
-
-        {/* Body */}
-        <div className="px-5 py-3">
-          {renderBody()}
-        </div>
-
-        {/* Footer badge */}
-        <div className="px-5 pb-4">
+      {/* Body + badge — outside the box */}
+      <div className="px-1 pt-3">
+        {renderBody()}
+        <div className="mt-2">
           <span className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${
             isConfigured ? "bg-green-50 text-green-600" : "bg-gray-100 text-gray-500"
           }`}>
             {isConfigured ? "Prompt configured" : "Unassigned"}
           </span>
         </div>
-
-        <Handle type="source" position={Position.Bottom} className="!bg-green-400 !w-3 !h-3 !border-2 !border-white" />
       </div>
     </div>
   );

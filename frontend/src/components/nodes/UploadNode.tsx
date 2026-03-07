@@ -10,23 +10,24 @@ export default function UploadNode({ id, data, selected }: Readonly<{ id: string
 
   return (
     <div className="relative select-none" style={{ width: 300 }}>
-      {/* Left floating run button */}
-      <div className="absolute -left-4 top-5 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 shadow-lg">
-        <Play className="h-3.5 w-3.5 ml-0.5 text-white" />
-      </div>
-
       <NodeToolbarActions id={id} selected={selected} accentColor="bg-blue-500" />
 
-      {/* Card */}
+      {/* Card box — header only */}
       <div
-        className={`rounded-2xl bg-white transition-all duration-150 ${
+        className={`relative rounded-2xl bg-white transition-all duration-150 ${
           selected
             ? "border-2 border-blue-400 shadow-xl shadow-blue-100/60"
             : "border-2 border-gray-200 shadow-md hover:shadow-lg"
         }`}
       >
-        {/* Header */}
-        <div className="flex items-center gap-3 px-5 pt-4 pb-3">
+        {/* Play button on left edge of card */}
+        <div className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 shadow-lg">
+          <Play className="h-3.5 w-3.5 ml-0.5 text-white" />
+        </div>
+
+        <Handle type="source" position={Position.Bottom} className="!bg-blue-400 !w-3 !h-3 !border-2 !border-white" />
+
+        <div className="flex items-center gap-3 px-5 py-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-500 shadow-sm shadow-blue-200">
             <Upload className="h-6 w-6 text-white" />
           </div>
@@ -37,37 +38,31 @@ export default function UploadNode({ id, data, selected }: Readonly<{ id: string
             <p className="mt-0.5 text-xs text-gray-400">Import Node</p>
           </div>
         </div>
+      </div>
 
-        <div className="h-px bg-gray-100" />
-
-        {/* Body */}
-        <div className="px-5 py-3">
-          {isConfigured ? (
-            <div className="space-y-1.5">
-              {cols.slice(0, 3).map(([field, col]) => (
-                <p key={field} className="text-sm text-gray-500">
-                  <span className="font-medium text-gray-700">{field}</span>
-                  <span className="text-gray-400"> ← "{col as string}"</span>
-                </p>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm leading-relaxed text-gray-500">
-              Import leads from a CSV or Excel file to start your automation.
-            </p>
-          )}
-        </div>
-
-        {/* Footer badge */}
-        <div className="px-5 pb-4">
+      {/* Body + badge — outside the box */}
+      <div className="px-1 pt-3">
+        {isConfigured ? (
+          <div className="space-y-1">
+            {cols.slice(0, 3).map(([field, col]) => (
+              <p key={field} className="text-sm text-gray-500">
+                <span className="font-medium text-gray-700">{field}</span>
+                <span className="text-gray-400"> ← "{col}"</span>
+              </p>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm leading-relaxed text-gray-500">
+            Import leads from a CSV or Excel file to start your automation.
+          </p>
+        )}
+        <div className="mt-2">
           <span className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${
             isConfigured ? "bg-blue-50 text-blue-600" : "bg-gray-100 text-gray-500"
           }`}>
             {isConfigured ? `${cols.length} columns mapped` : "Unassigned"}
           </span>
         </div>
-
-        <Handle type="source" position={Position.Bottom} className="!bg-blue-400 !w-3 !h-3 !border-2 !border-white" />
       </div>
     </div>
   );

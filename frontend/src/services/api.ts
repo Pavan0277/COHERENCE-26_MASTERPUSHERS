@@ -1,9 +1,10 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:3000/api",
-  withCredentials: true,
-});
+  baseURL: "https://nondiagrammatic-bonny-unbiologically.ngrok-free.dev/api",
+  withCredentials: false,  headers: {
+    "ngrok-skip-browser-warning": "true",
+  },});
 
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem("accessToken");

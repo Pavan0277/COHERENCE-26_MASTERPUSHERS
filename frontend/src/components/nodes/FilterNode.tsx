@@ -24,25 +24,25 @@ export default function FilterNode({
 
   return (
     <div className="relative select-none" style={{ width: 300 }}>
-      {/* Left floating run button */}
-      <div className="absolute -left-4 top-5 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 shadow-lg">
-        <Play className="h-3.5 w-3.5 ml-0.5 text-white" />
-      </div>
-
       <NodeToolbarActions id={id} selected={selected} accentColor="bg-purple-500" />
 
-      {/* Card */}
+      {/* Card box — header only */}
       <div
-        className={`rounded-2xl bg-white transition-all duration-150 ${
+        className={`relative rounded-2xl bg-white transition-all duration-150 ${
           selected
             ? "border-2 border-purple-400 shadow-xl shadow-purple-100/60"
             : "border-2 border-gray-200 shadow-md hover:shadow-lg"
         }`}
       >
-        <Handle type="target" position={Position.Top} className="!bg-purple-400 !w-3 !h-3 !border-2 !border-white" />
+        {/* Play button on left edge of card */}
+        <div className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-gray-900 shadow-lg">
+          <Play className="h-3.5 w-3.5 ml-0.5 text-white" />
+        </div>
 
-        {/* Header */}
-        <div className="flex items-center gap-3 px-5 pt-4 pb-3">
+        <Handle type="target" position={Position.Top} className="!bg-purple-400 !w-3 !h-3 !border-2 !border-white" />
+        <Handle type="source" position={Position.Bottom} className="!bg-purple-400 !w-3 !h-3 !border-2 !border-white" />
+
+        <div className="flex items-center gap-3 px-5 py-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-purple-500 shadow-sm shadow-purple-200">
             <Filter className="h-6 w-6 text-white" />
           </div>
@@ -53,36 +53,30 @@ export default function FilterNode({
             <p className="mt-0.5 text-xs text-gray-400">Condition Node</p>
           </div>
         </div>
+      </div>
 
-        <div className="h-px bg-gray-100" />
-
-        {/* Body */}
-        <div className="px-5 py-3">
-          {hasFilter ? (
-            <p className="rounded-lg bg-purple-50 px-3 py-2 font-mono text-sm text-purple-800">
-              <span className="font-semibold">{column}</span>
-              {" "}
-              <span className="text-purple-400">{OP_LABELS[operator ?? ""] || operator}</span>
-              {" "}
-              <span className="font-semibold">"{value}"</span>
-            </p>
-          ) : (
-            <p className="text-sm leading-relaxed text-gray-500">
-              Filter leads by matching specific column values before continuing.
-            </p>
-          )}
-        </div>
-
-        {/* Footer badge */}
-        <div className="px-5 pb-4">
+      {/* Body + badge — outside the box */}
+      <div className="px-1 pt-3">
+        {hasFilter ? (
+          <p className="rounded-lg bg-purple-50 px-3 py-2 font-mono text-sm text-purple-800">
+            <span className="font-semibold">{column}</span>
+            {" "}
+            <span className="text-purple-400">{OP_LABELS[operator ?? ""] || operator}</span>
+            {" "}
+            <span className="font-semibold">"{value}"</span>
+          </p>
+        ) : (
+          <p className="text-sm leading-relaxed text-gray-500">
+            Filter leads by matching specific column values before continuing.
+          </p>
+        )}
+        <div className="mt-2">
           <span className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${
             hasFilter ? "bg-purple-50 text-purple-600" : "bg-gray-100 text-gray-500"
           }`}>
             {hasFilter ? "Filter active" : "Unassigned"}
           </span>
         </div>
-
-        <Handle type="source" position={Position.Bottom} className="!bg-purple-400 !w-3 !h-3 !border-2 !border-white" />
       </div>
     </div>
   );
