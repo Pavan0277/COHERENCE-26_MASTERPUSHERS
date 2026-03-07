@@ -51,17 +51,25 @@ export async function createOutboundCall(toNumber, assistantId = null, phoneNumb
     }
 
     const normalizedNumber = normalizePhoneNumber(toNumber);
+
+    // Dynamically pass webhook URL so VAPI knows where to POST transcripts/events.
+    // Set BACKEND_URL in .env to your publicly reachable URL (ngrok URL or deployed domain).
+    const backendUrl = (process.env.BACKEND_URL || process.env.SERVER_URL || "").replace(/\/+$/, "");
+    const webhookUrl = backendUrl ? `${backendUrl}/api/v1/voice/webhook/vapi` : undefined;
+
     const body = {
         assistantId: assistant,
         phoneNumberId: phoneNumId,
         customer: { number: normalizedNumber },
+        ...(webhookUrl && { serverUrl: webhookUrl }),
         assistantOverrides: {
             transportConfigurations: [
                 {
                     provider: "twilio",
-                    timeout: 120, // Ring for 2 minutes before assuming no answer (default 60s)
+                    timeout: 120,
                 },
             ],
+            ...(webhookUrl && { server: { url: webhookUrl } }),
         },
     };
 

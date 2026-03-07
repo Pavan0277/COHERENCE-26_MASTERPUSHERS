@@ -22,6 +22,30 @@ type CallTranscript = {
   metadata?: { duration?: number; endedAt?: string; recordingUrl?: string };
 };
 
+function EmptyTranscriptMessage({
+  status,
+  endedReason,
+}: Readonly<{
+  status?: string;
+  endedReason?: string;
+}>) {
+  const reason = endedReason ? endedReason.replaceAll("-", " ") : null;
+  const isFinished = status === "ended" || status === "initiated";
+  let msg: string;
+  if (isFinished && reason) {
+    msg = `No conversation recorded. Call ended (${reason}).`;
+  } else if (isFinished) {
+    msg = "No conversation recorded. Call ended before connecting.";
+  } else {
+    msg = "No messages yet. Transcript appears after the call ends.";
+  }
+  return (
+    <div className="rounded-lg bg-gray-50 p-4 text-center text-sm text-gray-500">
+      {msg}
+    </div>
+  );
+}
+
 export default function VoiceAutomation() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,6 +56,8 @@ export default function VoiceAutomation() {
     useState<CallTranscript | null>(null);
   const [loadingTranscripts, setLoadingTranscripts] = useState(true);
   const [provider, setProvider] = useState<"vapi" | "vonage">("vapi");
+  const [transcriptError, setTranscriptError] = useState<string | null>(null);
+  const [loadingTranscript, setLoadingTranscript] = useState(false);
   const lastFetchRef = useRef<number>(0);
   const minFetchIntervalMs = 30_000; // Don't refetch more than once per 30 seconds
 
@@ -86,11 +112,21 @@ export default function VoiceAutomation() {
   };
 
   const handleViewTranscript = async (callId: string) => {
+    setTranscriptError(null);
+    setSelectedTranscript(null);
+    setLoadingTranscript(true);
     try {
       const res = await getTranscript(callId);
       setSelectedTranscript(res.data?.data || null);
-    } catch {
-      setSelectedTranscript(null);
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data
+          ?.message || "Failed to load transcript. Please try again.";
+      setTranscriptError(msg);
+      // Still open modal so user sees the error
+      setSelectedTranscript({ callId } as CallTranscript);
+    } finally {
+      setLoadingTranscript(false);
     }
   };
 
@@ -222,8 +258,8 @@ export default function VoiceAutomation() {
           aria-modal="true"
           aria-label="Call transcript"
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-          onClick={() => setSelectedTranscript(null)}
-          onKeyDown={(e) => e.key === "Escape" && setSelectedTranscript(null)}
+          onClick={() => { setSelectedTranscript(null); setTranscriptError(null); }}
+          onKeyDown={(e) => e.key === "Escape" && (setSelectedTranscript(null), setTranscriptError(null))}
           tabIndex={0}
         >
           <div
@@ -234,19 +270,21 @@ export default function VoiceAutomation() {
           >
             <div className="flex items-center justify-between">
               <h3 className="text-xl font-semibold text-gray-800">
-                Transcript: {selectedTranscript.phoneNumber}
+                Transcript: {selectedTranscript.phoneNumber ?? selectedTranscript.callId}
               </h3>
               <button
-                onClick={() => setSelectedTranscript(null)}
+                onClick={() => { setSelectedTranscript(null); setTranscriptError(null); }}
                 className="rounded-lg p-2 text-gray-500 hover:bg-gray-100"
               >
                 ✕
               </button>
             </div>
-            <p className="mt-1 text-sm text-gray-500">
-              {new Date(selectedTranscript.createdAt).toLocaleString()} •{" "}
-              {selectedTranscript.status}
-            </p>
+            {selectedTranscript.createdAt && (
+              <p className="mt-1 text-sm text-gray-500">
+                {new Date(selectedTranscript.createdAt).toLocaleString()} •{" "}
+                {selectedTranscript.status}
+              </p>
+            )}
             {selectedTranscript.metadata?.recordingUrl && (
               <a
                 href={selectedTranscript.metadata.recordingUrl}
@@ -257,26 +295,49 @@ export default function VoiceAutomation() {
                 Download recording
               </a>
             )}
-            <div className="mt-4 space-y-3">
-              {selectedTranscript.transcript?.map((entry) => (
-                <div
-                  key={`${entry.role}-${entry.timestamp}-${entry.content.slice(0, 20)}`}
-                  className={`rounded-lg p-3 ${
-                    entry.role === "caller"
-                      ? "bg-blue-50 text-blue-900"
-                      : "bg-indigo-50 text-indigo-900"
-                  }`}
-                >
-                  <p className="text-xs font-medium uppercase opacity-75">
-                    {entry.role}
-                  </p>
-                  <p className="mt-1">{entry.content}</p>
-                  <p className="mt-1 text-xs opacity-75">
-                    {new Date(entry.timestamp).toLocaleTimeString()}
-                  </p>
-                </div>
-              ))}
-            </div>
+
+            {/* Error state */}
+            {transcriptError && (
+              <div className="mt-4 rounded-lg bg-red-50 p-4 text-sm text-red-700">
+                {transcriptError}
+              </div>
+            )}
+
+            {/* Loading state */}
+            {loadingTranscript && (
+              <p className="mt-4 text-center text-gray-500">Loading transcript...</p>
+            )}
+
+            {/* Transcript entries */}
+            {!transcriptError && !loadingTranscript && (
+              <div className="mt-4 space-y-3">
+                {(selectedTranscript.transcript?.length ?? 0) === 0 ? (
+                  <EmptyTranscriptMessage
+                    status={selectedTranscript.status}
+                    endedReason={selectedTranscript.metadata?.endedReason}
+                  />
+                ) : (
+                  selectedTranscript.transcript.map((entry) => (
+                    <div
+                      key={`${entry.role}-${entry.timestamp}-${entry.content.slice(0, 20)}`}
+                      className={`rounded-lg p-3 ${
+                        entry.role === "caller"
+                          ? "bg-blue-50 text-blue-900"
+                          : "bg-indigo-50 text-indigo-900"
+                      }`}
+                    >
+                      <p className="text-xs font-medium uppercase opacity-75">
+                        {entry.role}
+                      </p>
+                      <p className="mt-1">{entry.content}</p>
+                      <p className="mt-1 text-xs opacity-75">
+                        {new Date(entry.timestamp).toLocaleTimeString()}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}

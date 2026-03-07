@@ -1,8 +1,15 @@
 import axios from "axios";
 
+const BASE = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api/v1/voice`
+  : "http://localhost:3000/api/v1/voice";
+
 const API = axios.create({
-  baseURL: "http://localhost:3000/api/v1/voice",
-  headers: { "Content-Type": "application/json" },
+  baseURL: BASE,
+  headers: {
+    "Content-Type": "application/json",
+    "ngrok-skip-browser-warning": "true",
+  },
   withCredentials: true,
 });
 
