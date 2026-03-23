@@ -35,6 +35,12 @@ if (!renderRuntime && isLikelyRenderInternalRedisHost(configuredRedisUrl)) {
 
 function createRedisOptions() {
     const isTls = redisUrl.startsWith("rediss://");
+    const username = isNonEmptyString(process.env.REDIS_USERNAME)
+        ? process.env.REDIS_USERNAME.trim()
+        : undefined;
+    const password = isNonEmptyString(process.env.REDIS_PASSWORD)
+        ? process.env.REDIS_PASSWORD.trim()
+        : undefined;
 
     return {
         maxRetriesPerRequest: null,
@@ -53,6 +59,8 @@ function createRedisOptions() {
                   },
               }
             : {}),
+        ...(username ? { username } : {}),
+        ...(password ? { password } : {}),
     };
 }
 
@@ -60,6 +68,11 @@ const connection = new IORedis(redisUrl, createRedisOptions());
 
 connection.on("error", (error) => {
     console.warn(`Redis connection error: ${error.message}`);
+    if (error.message?.includes("NOAUTH")) {
+        console.warn(
+            "Redis requires authentication. Set REDIS_PASSWORD (and REDIS_USERNAME if required) in environment variables."
+        );
+    }
 });
 
 /** Check if Redis is available using a temporary connection (avoids polluting main connection) */
