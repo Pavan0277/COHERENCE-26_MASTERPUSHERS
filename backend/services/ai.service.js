@@ -1,11 +1,37 @@
 import OpenAI from "openai";
 
+const ALLOWED_NODE_TYPES = new Set([
+    "upload",
+    "filter",
+    "ai_message",
+    "send",
+    "delay",
+    "call",
+    "webhook",
+    "condition",
+    "tag",
+    "sms",
+    "score",
+    "notify",
+    "split",
+    "update_field",
+    "ai_classify",
+    "whatsapp",
+    "linkedin",
+    "wait_until",
+    "transform",
+    "stop",
+    "enrich",
+    "meeting",
+    "http_request",
+]);
+
 // Lazily instantiated so dotenv has loaded before this runs
 function getClient() {
-  return new OpenAI({
-    apiKey: process.env.SARVAM_API_KEY,
-    baseURL: "https://api.sarvam.ai/v1",
-  });
+    return new OpenAI({
+        apiKey: process.env.SARVAM_API_KEY,
+        baseURL: "https://api.sarvam.ai/v1",
+    });
 }
 
 const WORKFLOW_SYSTEM_PROMPT = `You are a workflow builder assistant. When given a description of a workflow, respond ONLY with a valid JSON object — no explanation, no markdown, no code fences.
@@ -58,6 +84,227 @@ Node descriptions:
 Always connect nodes using edges from first to last in sequence.
 Return ONLY the raw JSON object.`;
 
+function safeContentToString(content) {
+    if (typeof content === "string") return content;
+    if (Array.isArray(content)) {
+        return content
+            .map((part) => {
+                if (typeof part === "string") return part;
+                if (part && typeof part === "object" && "text" in part) {
+                    const txt = part.text;
+                    return typeof txt === "string" ? txt : "";
+                }
+                return "";
+            })
+            .join("\n")
+            .trim();
+    }
+    return "";
+}
+
+function extractJsonCandidate(raw) {
+    const fenced = raw.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+    if (fenced?.[1]) return fenced[1].trim();
+
+    const firstBrace = raw.indexOf("{");
+    const lastBrace = raw.lastIndexOf("}");
+    if (firstBrace !== -1 && lastBrace > firstBrace) {
+        return raw.slice(firstBrace, lastBrace + 1).trim();
+    }
+
+    return raw.trim();
+}
+
+function sanitizeJson(candidate) {
+    return candidate
+        .replace(/^\uFEFF/, "")
+        .replace(/[“”]/g, '"')
+        .replace(/[‘’]/g, "'")
+        .replace(/,\s*([}\]])/g, "$1")
+        .trim();
+}
+
+function parseAiWorkflowJson(raw) {
+    const candidate = extractJsonCandidate(raw);
+    const attempts = [candidate, sanitizeJson(candidate)].filter(Boolean);
+
+    for (const attempt of attempts) {
+        try {
+            const parsed = JSON.parse(attempt);
+            if (typeof parsed === "string") {
+                return JSON.parse(parsed);
+            }
+            return parsed;
+        } catch {
+            // try next strategy
+        }
+    }
+
+    return null;
+}
+
+function inferDelaySeconds(prompt) {
+    const dayMatch = prompt.match(/(\d+)\s*day/i);
+    if (dayMatch) {
+        const days = Number(dayMatch[1]);
+        if (Number.isFinite(days) && days > 0) {
+            const seconds = days * 24 * 60 * 60;
+            return { min: seconds, max: seconds + 3600 };
+        }
+    }
+
+    const hourMatch = prompt.match(/(\d+)\s*hour/i);
+    if (hourMatch) {
+        const hours = Number(hourMatch[1]);
+        if (Number.isFinite(hours) && hours > 0) {
+            const seconds = hours * 60 * 60;
+            return { min: seconds, max: seconds + 900 };
+        }
+    }
+
+    return { min: 3600, max: 7200 };
+}
+
+function buildFallbackWorkflow(prompt) {
+    const p = (prompt || "").toLowerCase();
+    const nodes = [{ id: "node_1", type: "upload", config: {} }];
+
+    if (/filter|segment|only|manager|cto|title|role/.test(p)) {
+        const filterValue = p.includes("manager") ? "manager" : "";
+        nodes.push({
+            id: `node_${nodes.length + 1}`,
+            type: "filter",
+            config: filterValue
+                ? {
+                      filters: [
+                          {
+                              column: "title",
+                              operator: "contains",
+                              value: filterValue,
+                          },
+                      ],
+                  }
+                : { filters: [] },
+        });
+    }
+
+    if (/ai|generate|personal|message|email|outreach/.test(p)) {
+        nodes.push({
+            id: `node_${nodes.length + 1}`,
+            type: "ai_message",
+            config: {
+                instructions: "Generate a short personalized outreach message.",
+            },
+        });
+    }
+
+    if (/delay|wait|follow\s*-?up|followup/.test(p)) {
+        nodes.push({
+            id: `node_${nodes.length + 1}`,
+            type: "delay",
+            config: inferDelaySeconds(prompt),
+        });
+    }
+
+    let platform = "email";
+    if (/slack/.test(p)) platform = "slack";
+    else if (/telegram/.test(p)) platform = "telegram";
+
+    nodes.push({
+        id: `node_${nodes.length + 1}`,
+        type: "send",
+        config: {
+            platform,
+            followup: /follow\s*-?up|followup/.test(p),
+        },
+    });
+
+    const edges = nodes.slice(0, -1).map((node, idx) => ({
+        source: node.id,
+        target: nodes[idx + 1].id,
+    }));
+
+    return {
+        name: "AI Generated Workflow",
+        nodes,
+        edges,
+    };
+}
+
+function normalizeWorkflow(parsedWorkflow, prompt) {
+    if (!parsedWorkflow || typeof parsedWorkflow !== "object") {
+        return buildFallbackWorkflow(prompt);
+    }
+
+    const rawNodes = Array.isArray(parsedWorkflow.nodes)
+        ? parsedWorkflow.nodes
+        : [];
+    const normalizedNodes = rawNodes
+        .map((node, idx) => {
+            const type =
+                typeof node?.type === "string"
+                    ? node.type.trim().toLowerCase()
+                    : "";
+            if (!ALLOWED_NODE_TYPES.has(type)) return null;
+
+            const id =
+                typeof node?.id === "string" && node.id.trim()
+                    ? node.id.trim()
+                    : `node_${idx + 1}`;
+            const config =
+                node?.config && typeof node.config === "object"
+                    ? node.config
+                    : {};
+
+            return { id, type, config };
+        })
+        .filter(Boolean);
+
+    if (!normalizedNodes.length) {
+        return buildFallbackWorkflow(prompt);
+    }
+
+    const validIds = new Set(normalizedNodes.map((n) => n.id));
+    const rawEdges = Array.isArray(parsedWorkflow.edges)
+        ? parsedWorkflow.edges
+        : [];
+    const normalizedEdges = rawEdges
+        .map((edge) => {
+            const source =
+                typeof edge?.source === "string" ? edge.source.trim() : "";
+            const target =
+                typeof edge?.target === "string" ? edge.target.trim() : "";
+            if (
+                !source ||
+                !target ||
+                !validIds.has(source) ||
+                !validIds.has(target)
+            ) {
+                return null;
+            }
+            return { source, target };
+        })
+        .filter(Boolean);
+
+    const edges = normalizedEdges.length
+        ? normalizedEdges
+        : normalizedNodes.slice(0, -1).map((node, idx) => ({
+              source: node.id,
+              target: normalizedNodes[idx + 1].id,
+          }));
+
+    const name =
+        typeof parsedWorkflow.name === "string" && parsedWorkflow.name.trim()
+            ? parsedWorkflow.name.trim()
+            : "AI Generated Workflow";
+
+    return {
+        name,
+        nodes: normalizedNodes,
+        edges,
+    };
+}
+
 export async function generateWorkflow(prompt) {
     const client = getClient();
 
@@ -65,33 +312,23 @@ export async function generateWorkflow(prompt) {
         model: "sarvam-m",
         messages: [
             { role: "system", content: WORKFLOW_SYSTEM_PROMPT },
-            { role: "user",   content: prompt },
+            { role: "user", content: prompt },
         ],
         temperature: 0.2,
     });
 
-    const raw = completion.choices[0].message.content.trim();
+    const content = completion?.choices?.[0]?.message?.content;
+    const raw = safeContentToString(content);
 
-    // Strip markdown code fences if the model wraps the response
-    const cleaned = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
-
-    let workflow;
-    try {
-        workflow = JSON.parse(cleaned);
-    } catch {
-        throw new Error("AI returned invalid JSON. Please try again.");
-    }
-
-    // Basic structure validation
-    if (!workflow.name || !Array.isArray(workflow.nodes)) {
-        throw new Error("AI response is missing required fields (name, nodes).");
-    }
-
-    return workflow;
+    const parsed = parseAiWorkflowJson(raw);
+    return normalizeWorkflow(parsed, prompt);
 }
 
 export async function classifyLead(lead, categories, instructions) {
-    const cats = Array.isArray(categories) && categories.length ? categories : ["hot", "warm", "cold"];
+    const cats =
+        Array.isArray(categories) && categories.length
+            ? categories
+            : ["hot", "warm", "cold"];
     const prompt = `Classify this lead into exactly one of these categories: ${cats.join(", ")}.\n\nLead info:\nName: ${lead.name || ""}\nCompany: ${lead.company || ""}\nRole: ${lead.title || ""}\nEmail: ${lead.email || ""}\n\nInstructions: ${instructions || "Classify based on lead quality"}\n\nRespond with ONLY the category name, nothing else.`;
 
     const client = getClient();

@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
+import morgan from "morgan";
 
 dotenv.config({ path: "./.env" });
 
@@ -29,6 +30,17 @@ app.use(
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
+
+morgan.token("bodyPreview", (req) => {
+    if (!req.body || !Object.keys(req.body).length) return "-";
+    try {
+        return JSON.stringify(req.body).slice(0, 300);
+    } catch {
+        return "[unserializable-body]";
+    }
+});
+
+app.use(morgan(':method :url :status :response-time ms - body=:bodyPreview'));
 
 import { userRouter } from "./routers/user.routes.js";
 import { workflowRouter } from "./routers/workflow.routes.js";
