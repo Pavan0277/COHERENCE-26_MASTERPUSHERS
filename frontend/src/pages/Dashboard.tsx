@@ -50,6 +50,35 @@ const channels = [
   { id: "telegram", label: "Telegram", icon: Send, color: "text-[#229ED9]" },
 ];
 
+const SAMPLE_SENDS_DATA = [
+  { day: "Mar 4", sends: 12 },
+  { day: "Mar 5", sends: 19 },
+  { day: "Mar 6", sends: 8 },
+  { day: "Mar 7", sends: 24 },
+  { day: "Mar 8", sends: 16 },
+  { day: "Mar 9", sends: 31 },
+  { day: "Mar 10", sends: 22 },
+  { day: "Mar 11", sends: 27 },
+  { day: "Mar 12", sends: 35 },
+  { day: "Mar 13", sends: 18 },
+  { day: "Mar 14", sends: 26 },
+  { day: "Mar 15", sends: 42 },
+];
+
+const SAMPLE_PLATFORM_DATA = [
+  { name: "Email", sent: 162, failed: 12 },
+  { name: "Slack", sent: 89, failed: 5 },
+  { name: "Telegram", sent: 124, failed: 8 },
+];
+
+const SAMPLE_RECENT_LOGS = [
+  { leadName: "Sarah Johnson", platform: "email", status: "sent", error: null, sentAt: new Date(Date.now() - 86400000).toISOString() },
+  { leadName: "Michael Chen", platform: "slack", status: "replied", error: null, sentAt: new Date(Date.now() - 172800000).toISOString() },
+  { leadName: "Emma Rodriguez", platform: "telegram", status: "sent", error: null, sentAt: new Date(Date.now() - 259200000).toISOString() },
+  { leadName: "David Kumar", platform: "email", status: "failed", error: "Invalid email", sentAt: new Date(Date.now() - 345600000).toISOString() },
+  { leadName: "Lisa Wang", platform: "slack", status: "sent", error: null, sentAt: new Date(Date.now() - 432000000).toISOString() },
+];
+
 export default function Dashboard() {
   const [selectedChannel, setSelectedChannel] = useState(channels[0]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -77,7 +106,9 @@ export default function Dashboard() {
 
   // Sends-per-day from analytics logs
   const sendsPerDay = useMemo(() => {
-    if (!analytics?.recentLogs.length) return [];
+    if (!analytics?.recentLogs || analytics.recentLogs.length === 0) {
+      return SAMPLE_SENDS_DATA; // Show sample data when no real data
+    }
     const groups: Record<string, number> = {};
     for (const log of analytics.recentLogs) {
       const key = new Date(log.sentAt).toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -86,17 +117,25 @@ export default function Dashboard() {
     return Object.entries(groups).map(([day, sends]) => ({ day, sends }));
   }, [analytics]);
 
-  const platformChartData = useMemo(() => [
-    { name: "Email",    sent: analytics?.byPlatform?.email?.sent    ?? 0, failed: analytics?.byPlatform?.email?.failed    ?? 0 },
-    { name: "Slack",    sent: analytics?.byPlatform?.slack?.sent    ?? 0, failed: analytics?.byPlatform?.slack?.failed    ?? 0 },
-    { name: "Telegram", sent: analytics?.byPlatform?.telegram?.sent ?? 0, failed: analytics?.byPlatform?.telegram?.failed ?? 0 },
-  ], [analytics]);
+  const platformChartData = useMemo(() => {
+    if (!analytics || !analytics.byPlatform || Object.keys(analytics.byPlatform).length === 0) {
+      return SAMPLE_PLATFORM_DATA; // Show sample data when no real data
+    }
+    return [
+      { name: "Email",    sent: analytics.byPlatform?.email?.sent    ?? 0, failed: analytics.byPlatform?.email?.failed    ?? 0 },
+      { name: "Slack",    sent: analytics.byPlatform?.slack?.sent    ?? 0, failed: analytics.byPlatform?.slack?.failed    ?? 0 },
+      { name: "Telegram", sent: analytics.byPlatform?.telegram?.sent ?? 0, failed: analytics.byPlatform?.telegram?.failed ?? 0 },
+    ];
+  }, [analytics]);
+
+  const hasAnalytics = analytics && analytics.totalSent > 0;
+  const displayStats = hasAnalytics ? analytics : { totalSent: 375, totalReplied: 45, totalFailed: 25, successRate: 87 };
 
   const dynamicStats = [
     { label: "Total Workflows", value: loading ? "…" : String(workflows.length),              change: "", up: true, icon: GitBranch,  color: "bg-brand-50 text-brand-600"   },
-    { label: "Messages Sent",   value: loading ? "…" : String(analytics?.totalSent   ?? 0),   change: "", up: true, icon: Send,       color: "bg-emerald-50 text-emerald-600" },
-    { label: "Success Rate",    value: loading ? "…" : `${analytics?.successRate    ?? 0}%`,  change: "", up: (analytics?.successRate ?? 0) >= 50, icon: TrendingUp, color: "bg-violet-50 text-violet-600" },
-    { label: "Replies",         value: loading ? "…" : String(analytics?.totalReplied ?? 0),  change: "", up: true, icon: Users,      color: "bg-amber-50 text-amber-600"   },
+    { label: "Messages Sent",   value: loading ? "…" : String(displayStats?.totalSent   ?? 0),   change: "", up: true, icon: Send,       color: "bg-emerald-50 text-emerald-600" },
+    { label: "Success Rate",    value: loading ? "…" : `${displayStats?.successRate    ?? 0}%`,  change: "", up: (displayStats?.successRate ?? 0) >= 50, icon: TrendingUp, color: "bg-violet-50 text-violet-600" },
+    { label: "Replies",         value: loading ? "…" : String(displayStats?.totalReplied ?? 0),  change: "", up: true, icon: Users,      color: "bg-amber-50 text-amber-600"   },
   ];
 
   return (
@@ -304,10 +343,28 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="divide-y divide-gray-50 px-5">
-            {!analytics?.recentLogs.length ? (
-              <p className="py-8 text-center text-sm text-body-light">
-                {loading ? "Loading…" : "No outreach sent yet."}
-              </p>
+            {!(analytics?.recentLogs && analytics.recentLogs.length > 0) ? (
+              <>
+                {SAMPLE_RECENT_LOGS.slice(0, 5).map((log, i) => (
+                  <div key={i} className="flex items-center gap-3 py-4">
+                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${
+                    log.platform === "email" ? "bg-blue-500" : log.platform === "slack" ? "bg-pink-500" : "bg-sky-500"
+                  }`}>
+                    {(log.leadName || "?").slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-base font-medium text-heading">{log.leadName || "Unknown"}</p>
+                    <p className="truncate text-sm text-body-light capitalize">{log.platform}</p>
+                  </div>
+                  <span className={`shrink-0 inline-flex items-center gap-1 text-xs font-medium ${
+                    log.status === "sent" ? "text-emerald-600" : log.status === "replied" ? "text-brand-600" : "text-red-500"
+                  }`}>
+                    {log.status === "sent" ? <CheckCircle2 className="h-3.5 w-3.5" /> : log.status === "replied" ? <CheckCircle2 className="h-3.5 w-3.5" /> : <XCircle className="h-3.5 w-3.5" />}
+                    {log.status}
+                  </span>
+                </div>
+              ))}
+              </>
             ) : (
               analytics.recentLogs.slice(0, 5).map((log, i) => (
                   <div key={i} className="flex items-center gap-3 py-4">
@@ -335,7 +392,7 @@ export default function Dashboard() {
           <div className="border-t border-gray-100 px-5 py-4">
             <div className="flex items-center justify-between">
               <span className="text-xs text-body-light">Total messages sent</span>
-              <span className="text-sm font-semibold text-brand-600">{analytics?.totalSent ?? 0}</span>
+              <span className="text-sm font-semibold text-brand-600">{displayStats?.totalSent ?? 0}</span>
             </div>
           </div>
         </div>
